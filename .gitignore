@@ -1,0 +1,7 @@
+# Files
+*.xml
+*.sublime*
+
+# Folders
+debug/
+config/
