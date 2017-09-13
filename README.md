@@ -10,7 +10,7 @@ Dispatch Connect installs a few objects into your Salesforce instance which user
 * Dispatch Service Provider (dispconn__service_provider) - Stores the Contractor/Service Provider/Third Party/Franchise record
 * Dispatch Field Worker (dispconn_field_tech) - stores the field worker/tech/dispatcher record. Only used when using the "Direct Assign" method (more on that later)
 * Dispatch Job (dispconn_job) - stores the job/work order/service order record
-* Custom Settings (dispconn__Dispatch__CS
+* Custom Settings (dispconn__Dispatch__CS)
 
 # Dispatch-Field Service Lighning (FSL) - Business Case
 FSL is Salesforce's own field service product. We don't compete with FSL we complement it! Just as we may complement or augment any other field service initiatives that you already might have on the Salesforce platform. In the FSL case, we add support for the "FSL for non-dedicated Third Party Networks" business model. That is, while FSL works well for internal work forces and perhaps even for contractors it may struggle just a little bit with non-dedicated Third Party Networks (TPN). 
