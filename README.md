@@ -77,8 +77,7 @@ This method is responsible for mapping from your "Service Provider" or "Location
 
 | Suggested Field Label | Field Name | Type | Description | Add to form? |
 | ------------- | ------------- | ------------- | ------------- | :--------: |
-| Name of your linked object (Service Territory in FSL) | Ext_Service_Provider | Lookup to your corresponding object (Service Territory in FSL) | Linkage
- | Yes |
+| Name of your linked object (Service Territory in FSL) | Ext_Service_Provider | Lookup to your corresponding object (Service Territory in FSL) | Linkage | Yes |
 
  ### `DispatchTechToDispatch`
 **This mapping is only relevant if you are using the `TECHASSIGN` dispatch method. See above for description.**
@@ -96,8 +95,7 @@ This method is responsible for mapping from your "Technician" or "Employee" obje
 
 | Suggested Field Label | Field Name | Type | Description | Add to form? |
 | ------------- | ------------- | ------------- | ------------- | :--------: |
-| Name of your linked object (Service Resource in FSL) | Ext_Tech | Lookup to your corresponding object (Service Resource in FSL) | Linkage
- | Yes |
+| Name of your linked object (Service Resource in FSL) | Ext_Tech | Lookup to your corresponding object (Service Resource in FSL) | Linkage | Yes |
 
 ### `DispatchJobToDispatch`
 
@@ -106,8 +104,7 @@ This method is responsible for mapping from your "Work Order" or "Job" object to
 #### On the `dispconn__Job` object:
 | Suggested Field Label | Field Name | Type | Description | Add to form? |
 | ------------- | ------------- | ------------- | ------------- | :--------: |
-| Name of your linked object (Service Appointment in FSL) | Ext_Job | Lookup to your corresponding object (Service Appointment in FSL) | Linkage
- | Yes |
+| Name of your linked object (Service Appointment in FSL) | Ext_Job | Lookup to your corresponding object (Service Appointment in FSL) | Linkage | Yes |
 
 
  ### `DispatchJobFromDispatch`
