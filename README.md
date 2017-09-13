@@ -45,7 +45,7 @@ It's important to note that this template mapping uses bulkified queries so as t
 Please also bear in mind that the FSL mapping is probably a bit more complex than your average mapping. For example, the record assignment takes place between the `ServiceAppointment` and `ServiceResource` via an intermediary `ServiceAssignment` record. In most instances, the assignment is directly on the job record. There are other examples but the point is that you'll be needing to adjust your code accordingly to simplify where necessary. We've added comments prefixed with `FSL` in the code to give pointers to these cases.
 
 ## Triggers
-In general you can deploy the triggers "as is" as there's very little logic in them - just a called to the relevant `DispatchTriggerHandler` method. Although you may want to verify the triggering event to make sure they're sufficient/necessary (i.e. `after insert` and `after update`). 
+In general you can deploy the triggers "as is" as there's very little logic in them - just a call to the relevant `DispatchTriggerHandler` method. Although you may want to verify the triggering event to make sure they're sufficient/necessary (i.e. `after insert` and `after update`). 
 
 All the triggershave been prefixed with the `Dispatch` but in your instance you can rename them as necessary or include the code snippet into an existing trigger. You will need to create the following triggers (feel free to drop the Dispatch prefix and ensure they are being triggered off the appropriate object):
 
