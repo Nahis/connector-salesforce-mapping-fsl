@@ -53,7 +53,7 @@ All the triggershave been prefixed with the `Dispatch` but in your instance you 
 * Dispatch<FieldWorker> - for FSL we named this `DispatchServiceResource` even though it's technically not used
 * Dispatch<WorkOrder> - for FSL we named this `DispatchAppointment`
 * Dispatch<Note> - for FSL we named this `DispatchNote` (uses standard Notes object)
-* DispatchJob - this trigger works off the `dispconn_Job` obect so you should be able to leave it as is
+* DispatchJob - this trigger works off the `dispconn_Job` object so you should be able to leave it as is
  
 ## Dispatch Trigger Handler methods
 This is the most labor intensive exercise but we reckon that this can be completed in a couple of days. Please refer to the comments in the code examples as they should guide you through the process.
