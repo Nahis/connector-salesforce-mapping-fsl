@@ -15,7 +15,7 @@ public class DispatchTriggerHandler {
     public static void DispatchServiceProviderToDispatch(List<ServiceTerritory> newList,List<ServiceTerritory> oldList, Map<Id,ServiceTerritory> newMap, Map<Id,ServiceTerritory> oldMap){
         if (!firstRun) { return; }
         firstRun = false;
-        // Gather Location Ids
+        // FSL: Gather Location Ids - we're going to use these to match on existing Service Provider records
         List<ServiceTerritory> newListRelevant = new List<ServiceTerritory>();
         Set<Id> locationIds = new Set<Id>();
         for(ServiceTerritory loc: newList) {
@@ -26,8 +26,11 @@ public class DispatchTriggerHandler {
         }
 
         if (newListRelevant.size() > 0 ) {
-            // Get Dispatch Service Provider records based on Location Ids and put in map
-            List<dispconn__Service_Provider__c> dispSPs = [SELECT Id, Ext_Service_Provider__c FROM dispconn__Service_Provider__c WHERE Ext_Service_Provider__c IN :locationIds];
+            // FSL: Get Dispatch Service Provider records based on Location Ids and put in map. This query should be the same in your instance assuming you have
+            //      a locationsId variable defined
+            List<dispconn__Service_Provider__c> dispSPs = [SELECT Id, Ext_Service_Provider__c 
+                                                            FROM dispconn__Service_Provider__c 
+                                                            WHERE Ext_Service_Provider__c IN :locationIds];
             map<string, dispconn__Service_Provider__c> mapDispSPs = new map<string, dispconn__Service_Provider__c>();
             for(dispconn__Service_Provider__c sp: dispSPs) {
                 mapDispSPs.put(sp.Ext_Service_Provider__c, sp);
@@ -39,22 +42,23 @@ public class DispatchTriggerHandler {
             for (ServiceTerritory extSP : newListRelevant) {
                 if (extSP.Dispatch_me__c) { //if not flagged as a dispatch.me org
                     
-                    //lookup corresponding Dispatch Service Provider from map
+                    // FSL: lookup corresponding Dispatch Service Provider from map - you should not have to change this logic
                     dispconn__Service_Provider__c dispSP;
                     dispSP = mapDispSPs.get(extSP.Id);
                     if (dispSP == Null) {
                         // SP not found insert
                         dispSP = new dispconn__Service_Provider__c(); 
                     }    
+                    dispSP.Ext_Service_Provider__c = extSP.Id;                    
 
                     /***********
-                     * MAPPING START:
+                     * FSL: MAPPING START:
 	                 * Update this section with mapping changes to your specific instance. 
 	                 * 'extSP' contains the fields to your service provider entity. Map those fields to
 	                 * 'dispSP' which is the corresponding dispconn entity
 	                 */
 
-                    dispSP.Name = extSP.Name; // If the name field is "technical" map it from other fields e.g. 'Your Company Name ('+extSP.City__c+')';
+                    dispSP.Name = extSP.Name; // If the name field is "technical" (e.g. X123) then you can map it from other fields e.g. 'Your Company Name ('+extSP.City__c+')';
                     dispSP.dispconn__Phone__c = extSP.Phone__c;
                     dispSP.dispconn__Email__c = extSP.Email__c;
                     dispSP.dispconn__Usage__c = 'normal';
@@ -71,10 +75,9 @@ public class DispatchTriggerHandler {
                         dispSP.dispconn__Address_Postal_Code__c = extSP.PostalCode;
                     }
                     /***********
-                     * MAPPING END 
+                     * FSL: MAPPING END 
                      */
                     
-                    dispSP.Ext_Service_Provider__c = extSP.Id;
                     // Add Service Provider to the list
                     dispSPsUpdate.add(dispSP);
                 }
@@ -87,10 +90,13 @@ public class DispatchTriggerHandler {
     }
 
     public static void DispatchTechToDispatch(List<ServiceResource> newList,List<ServiceResource> oldList, Map<Id,ServiceResource> newMap, Map<Id,ServiceResource> oldMap) {
+        /* FSL: Technically this method is not required for the SPOFFER assignment method which is what we're using in the demo. However, this logic
+         *      is being included and will technically work so you can see how it's done.
+         */
         if (!firstRun) { return; }
         firstRun = false;
 
-        // Gather Resource Ids
+        // FSL: Gather Resource Ids and User Ids - we're going to use these to match on existing Service Resource and User records
         List<ServiceResource> newListRelevant = new List<ServiceResource>();
         Set<Id> resourceIds = new Set<Id>();
         Set<Id> userIds = new Set<Id>();
@@ -102,7 +108,8 @@ public class DispatchTriggerHandler {
             }
         }
         if (newListRelevant.size() > 0 ) {
-            // Get Dispatch Field Worker records based on Resource Ids and put in map
+            // FSL: Get Dispatch Field Worker records based on Resource Ids and put in map. This query should be the same in your instance 
+            //      assuming you have a resourcesId variable defined
             List<dispconn__Field_Tech__c> dispTechs = [SELECT Id, Ext_Tech__c, dispconn__Service_Provider__c
                                                          FROM dispconn__Field_Tech__c 
                                                          WHERE Ext_Tech__c IN :resourceIds];
@@ -112,11 +119,19 @@ public class DispatchTriggerHandler {
             }
 
             /***********
-             * BULK QUERY MAPPING START:
-             * Add bulkified queries to get the data that you need into maps
+             * FSL: BULK QUERY MAPPING START:
+             * Add bulkified queries to get the data that you need into maps. These queries will vary per implementation depending on where the data
+               that is needed is stored
              */
 
-            // Get service territories based on Resource Ids and put in map
+            // FSL: Get users and put in map
+            List<User> extUsers = [SELECT Id,FirstName,LastName,Email,MobilePhone FROM User WHERE Id IN :userIds];
+            map<string, User> mapExtUsers = new map<string, User>();
+            for(User u: extUsers) {
+                mapExtUsers.put(u.Id, u);
+            }  
+
+            // FSL: Get service territories based on Resource Ids and put in map
             List<ServiceTerritoryMember> extServiceTerritories = [SELECT ServiceTerritoryId, ServiceResourceId FROM ServiceTerritoryMember WHERE ServiceResourceId IN :resourceIds
                                                                   AND TerritoryType = 'P' AND EffectiveEndDate = Null AND ServiceTerritory.Dispatch_Me__c = True];
             map<string, ServiceTerritoryMember> mapExtServiceTerritories = new map<string, ServiceTerritoryMember>();
@@ -126,7 +141,7 @@ public class DispatchTriggerHandler {
                 locationIds.add(st.ServiceTerritoryId);
             }
 
-            // Get Dispatch Service Provider records based on the Location IDs and put in map
+            // FSL: Get Dispatch Service Provider records based on the Location IDs and put in map
             List<dispconn__Service_Provider__c> dispSPs = [SELECT Id, Ext_Service_Provider__c 
                                                            FROM dispconn__Service_Provider__c 
                                                            WHERE Ext_Service_Provider__c IN :locationIds];
@@ -135,14 +150,8 @@ public class DispatchTriggerHandler {
                 mapDispSPs.put(sp.Ext_Service_Provider__c, sp);
             }            
 
-            // Get users and put in map
-            List<User> extUsers = [SELECT Id,FirstName,LastName,Email,MobilePhone FROM User WHERE Id IN :userIds];
-            map<string, User> mapExtUsers = new map<string, User>();
-            for(User u: extUsers) {
-                mapExtUsers.put(u.Id, u);
-            }  
             /***********
-             * BULK QUERY MAPPING END 
+             * FSL: BULK QUERY MAPPING END 
              */  
 
             // Create a list for updating
@@ -151,29 +160,30 @@ public class DispatchTriggerHandler {
             // Process Trigger Records
             for (ServiceResource extTech : newListRelevant) {
                 try {
-                    /***********
-                     * MAPPING START:
-                     * Update this section with mapping changes to your specific instance. 
-                     * 'extTech' contains the fields to your field tech/worker entity. Map those fields to
-                     * 'dispTech' which is the corresponding dispconn entity
-                     */
-
-                    //lookup corresponding Dispatch Field Worker from map
+                    //lookup corresponding Dispatch Field Worker from map - you should not have to change this logic
                     dispconn__Field_Tech__c dispTech;
                     dispTech = mapDispTechs.get(extTech.Id);
                     if (dispTech == Null) {
                         // Tech not found insert
                         dispTech = new dispconn__Field_Tech__c(); 
                     }   
+                    dispTech.Ext_Tech__c  = extTech.Id;                    
 
-                    //lookup corresponding Service Territory from map
+                    /***********
+                     * FSl: MAPPING START:
+                     * Update this section with mapping changes to your specific instance. 
+                     * 'extTech' contains the fields to your field tech/worker entity. Map those fields to
+                     * 'dispTech' which is the corresponding dispconn entity
+                     */
+
+                    //FSL: lookup corresponding Service Territory from map
                     ServiceTerritoryMember stm;
                     stm = mapExtServiceTerritories.get(extTech.Id);
                     if (stm == Null) {
                         throw new spException('Member is not linked to a valid Service Territory');
                     } 
 
-                    //lookup corresponding Dispatch Service Provider from map
+                    //FSL: lookup corresponding Dispatch Service Provider from map
                     dispconn__Service_Provider__c sp;
                     sp = mapDispSPs.get(stm.ServiceTerritoryId);
                     if (sp == Null) {
@@ -181,7 +191,7 @@ public class DispatchTriggerHandler {
                     }
                     dispTech.dispconn__Service_Provider__c = sp.Id;
 
-                    //lookup corresponding user from map
+                    // FSL: lookup corresponding user from map
                     User u;
                     u = mapExtUsers.get(extTech.RelatedRecordId);
                     if (u == Null) {
@@ -198,10 +208,9 @@ public class DispatchTriggerHandler {
                     }
                     dispTech.dispconn__Active__c = extTech.IsActive;
                     /***********
-                     * MAPPING END 
+                     * FSL: MAPPING END 
                      */
 
-                    dispTech.Ext_Tech__c  = extTech.Id;
                     dispTechsUpdate.add(dispTech);   
 
                 } catch (techException e) {
@@ -220,10 +229,17 @@ public class DispatchTriggerHandler {
     }
 
     public static void DispatchJobToDispatch(List<ServiceAppointment> newList,List<ServiceAppointment> oldList, Map<Id,ServiceAppointment> newMap, Map<Id,ServiceAppointment> oldMap){
+        /* FSL: This is where you map your job to a Dispatch job. Think of a job as a discrete unit of work that will be assigned to a resource. Although a job can 
+         *      have multiple appointments. At the moment, these additional appointments would happen on the Dispatch side after the job has been sent over (using the 
+         *      SPOFFER assignment strategy).
+         *      The FSL demo uses the SPOFFER assignment strategy although this section also includes redundant logic for assigning direct to tech (TECHASSIGN) to.
+         *      show you how that would be done. As such you should not have to perform the lookup to "DISPATCH_ASSIGN_METHOD" as is done here.
+         */
         if (!firstRun) { return; }
         firstRun = false;
 
-        String assignMethod = dispconn__Dispatch_CS__c.getInstance('DISPATCH_ASSIGN_METHOD').dispconn__Value__c;
+        // FSL: Gather contact Ids and locations Ids - we're going to use these to match on existing Service Territory and Contact records
+        String assignMethod = dispconn__Dispatch_CS__c.getInstance('DISPATCH_ASSIGN_METHOD').dispconn__Value__c; 
         Set<Id> jobIds = new Set<Id>();    
         Set<Id> contactIds = new Set<Id>();    
         Set<Id> locationIds = new Set<Id>();    
@@ -238,21 +254,48 @@ public class DispatchTriggerHandler {
                 }    
                 if (sa.ServiceTerritoryId != null) {
                     locationIds.add(sa.ServiceTerritoryId);
-                    // could also put in a check here to see if the Service Territory is DispatchMe - before adding to newListRelevant. Would need another bulkified query
+                    // FSL: could also put in a check here to see if the Service Territory is DispatchMe - before adding to newListRelevant. Would need another bulkified query at the top
                 }                    
                 newListRelevant.add(sa);
             }
         }
         
         if (newListRelevant.size() > 0 ) {
-            // Get Dispatch Jobs records based on Job Ids and put in map
+            // FSL: Get Dispatch Jobs records based on Job Ids and put in map. This query should be the same in your instance 
+            //      assuming you have a resourcesId variable defined
             List<dispconn__Job__c> dispJobs = [SELECT Id, Ext_Job__c, dispconn__Field_Tech__c FROM dispconn__Job__c WHERE Ext_Job__c IN :jobIds];
             map<string, dispconn__Job__c> mapDispJobs = new map<string, dispconn__Job__c>();
             for(dispconn__Job__c j: dispJobs) {
                 mapDispJobs.put(j.Ext_Job__c, j);
             }
-            // Get list of locations sending jobs to dispatch - in this example it needs to be obtained via the assigned resource 
-            // first get assigned resources, then get territory from resource       
+
+
+            /***********
+             * FSL: BULK QUERY MAPPING START:
+             * Add bulkified queries to get the data that you need into maps. These queries will vary per implementation depending on where the data
+               that is needed is stored
+             */
+
+            // FSL: Get Dispatch Service Provider records based on the Location IDs on the ServiceAppointment and put in map
+            //      This query is required if the assignment method is SPOFFER and is the one used in the demo. For a direct assign scenario this value 
+            //      would have to be obtained from the tech records 
+            List<dispconn__Service_Provider__c> dispSPs = [SELECT Id, Ext_Service_Provider__c 
+                                                           FROM dispconn__Service_Provider__c 
+                                                           WHERE Ext_Service_Provider__c IN :locationIds];
+            map<string, dispconn__Service_Provider__c> mapDispSPs = new map<string, dispconn__Service_Provider__c>();
+            for(dispconn__Service_Provider__c sp: dispSPs) {
+                mapDispSPs.put(sp.Ext_Service_Provider__c, sp);
+            }
+
+            // FSL: Gather Contact Info for job. If the Service Appointment does not contain the address, the address from the contact record will be used
+            List<Contact> contacts = [SELECT FirstName, LastName, MobilePhone, Email,
+                                             MailingStreet, MailingCity, MailingPostalCode, MailingState, MailingCountry
+                                       FROM Contact WHERE Id IN :contactIds];
+            map<Id, Contact> mapContacts = new map<Id, Contact>(contacts);
+
+            // FSL: The next 3 query blocks are only required if assigning directly to the tech i.e. assign method = TECHASSIGN. This is not the scenario shown
+            //      in the demo. If the Service Territory was not on the appointment the only way to get it would be via the Service Resource assigned to 
+            //      the Service Appointment.
             List<AssignedResource> extResources = [SELECT Id,ServiceAppointmentId,ServiceResourceId,ServiceResource.RelatedRecord.IsActive,ServiceResource.Dispatch_Me__c
                                                    FROM AssignedResource 
                                                    WHERE ServiceAppointmentId IN :jobIds];
@@ -263,7 +306,8 @@ public class DispatchTriggerHandler {
                 mapExtResources.put(r.ServiceAppointmentId, r);
                 resourceIds.add(r.ServiceResourceId);
             }
-            // Get service territories based on Resource Ids and put in map
+
+            // FSL: Get service territories based on Resource Ids and put in map
             List<ServiceTerritoryMember> extLocations = [SELECT ServiceTerritoryId, ServiceResourceId 
                                                          FROM ServiceTerritoryMember 
                                                          WHERE ServiceResourceId IN :resourceIds AND TerritoryType = 'P' 
@@ -273,14 +317,7 @@ public class DispatchTriggerHandler {
                 mapExtLocations.put(t.ServiceResourceId, t);
             }   
 
-
-            // Gather Contact Info for job. This assumes the address is stored on the contact.
-            List<Contact> contacts = [SELECT FirstName, LastName, MobilePhone, Email,
-                                             MailingStreet, MailingCity, MailingPostalCode, MailingState, MailingCountry
-                                       FROM Contact WHERE Id IN :contactIds];
-            map<Id, Contact> mapContacts = new map<Id, Contact>(contacts);
-
-            // Get Dispatch Field Worker records based on Resource Ids and put in map
+            // FSL: Get Dispatch Field Worker records based on Resource Ids and put in map. 
             List<dispconn__Field_Tech__c> dispTechs = [SELECT Id, Ext_Tech__c, dispconn__Service_Provider__c
                                                          FROM dispconn__Field_Tech__c 
                                                          WHERE Ext_Tech__c IN :resourceIds AND dispconn__Active__c = True];
@@ -289,20 +326,16 @@ public class DispatchTriggerHandler {
                 mapDispTechs.put(t.Ext_Tech__c, t);
             }        
 
-            // Get Dispatch Service Provider records based on the Location IDs on the ServiceAppointment and put in map
-            // This query is only required if the assignment method is to Service Providers (offer) otherwise this value would be obtained from dispTechs
-            List<dispconn__Service_Provider__c> dispSPs = [SELECT Id, Ext_Service_Provider__c 
-                                                           FROM dispconn__Service_Provider__c 
-                                                           WHERE Ext_Service_Provider__c IN :locationIds];
-            map<string, dispconn__Service_Provider__c> mapDispSPs = new map<string, dispconn__Service_Provider__c>();
-            for(dispconn__Service_Provider__c sp: dispSPs) {
-                mapDispSPs.put(sp.Ext_Service_Provider__c, sp);
-            }
+            /***********
+             * FSL: BULK QUERY MAPPING END 
+             */  
+
             // Create a list for updating
             List<dispconn__Job__c> dispJobsUpdate = new List<dispconn__Job__c>();
 
             for (ServiceAppointment extJob : newListRelevant) {
                 try {
+                    // Lookup corresponding Dispatch Job from map - you should not have to change this logic
                     System.debug('Dispatch: ' + extJob.AppointmentNumber);
                     dispconn__Job__c dispJob;
                     dispJob = mapDispJobs.get(extJob.Id);
@@ -312,10 +345,18 @@ public class DispatchTriggerHandler {
                         dispJob.dispconn__Status__c = 'New';
                     }
                     dispJob.Ext_Job__c = extJob.Id;
+                    // Initialize - sync statuses. Recommend leaving as is.
                     dispJob.dispconn__Last_Sync_Response__c = 'Pending Sync:'+DateTime.now();
                     dispJob.dispconn__Synced__c = False;
+
+                    /***********
+                     * FSl: MAPPING START:
+                     * Update this section with mapping changes to your specific instance. 
+                     * 'extTech' contains the fields to your field tech/worker entity. Map those fields to
+                     * 'dispTech' which is the corresponding dispconn entity
+                     */                    
                     
-                    // if using the direct tech assignment method then map the field tech
+                    // FSL: if using the direct tech assignment method then map the field tech. This section is not used in the FSL demo
                     if (assignMethod == 'TECHASSIGN') {
                         // Try to get assigned resource
                         AssignedResource ar = mapExtResources.get(extJob.Id);
@@ -351,7 +392,7 @@ public class DispatchTriggerHandler {
                         }                        
                     }    
 
-                    // if service territory on the service appointment get it from there
+                    // FSL: If service territory on the service appointment get it from there
                     if (extJob.ServiceTerritoryId != null) {
                         dispconn__Service_Provider__c sp = mapDispSPs.get(extJob.ServiceTerritoryId);
                         if (sp == null) {  // not a valid dispatch territory
@@ -408,6 +449,7 @@ public class DispatchTriggerHandler {
                     dispJob.dispconn__Description__c = descr;
 
                     /* SERVICE TYPE */
+                    // FSL: This has not been mapped. You should in your instance if relevant
                     /*if (!String.isBlank(extJob.WorkType)) {
                             dispJob.dispconn__Service_Type__c = extJob.WorkType;
                     } */   
@@ -418,16 +460,19 @@ public class DispatchTriggerHandler {
                     }    
                     // handle status changes
                     if (oldMap == null || extJob.Status != oldMap.get(extJob.Id).Status) {
-                        /*
-                        if (extJob.SchedStartTime != oldMap.get(extJob.Id).SchedStartTime || extJob.SchedEndTime != oldMap.get(extJob.Id).SchedEndTime || extJob.Duration != oldMap.get(extJob.Id).Duration ) {
+                        if (extJob.Status == 'Scheduled' ) {
                             dispJob.dispconn__Status__c = 'Scheduled';
-                        } */                           
+                        }                      
                         if (extJob.Status == 'Completed' ) {
                             dispJob.dispconn__Status__c = 'Completed';
                         } else if (extJob.Status == 'Canceled') { 
                             dispJob.dispconn__Status__c = 'Canceled';
                         } 
                     }    
+                    /***********
+                     * FSl: MAPPING END
+                     */
+
                     dispJobsUpdate.add(dispJob);
 
                 } catch (jobException e) {
@@ -444,10 +489,9 @@ public class DispatchTriggerHandler {
         if (!firstRun) { return; }
         firstRun = false;
 
-        /*
-        This next section only relevant for FSL: here we are trying to retrieve the tech record for the organization so we can assign it to view it on the gantt.
-        It assumes a 1-1 relationship i.e. 3rd party contractor org will only have a single member. 
-        This logic is not necessary for most cases
+        /* FSL: This block is only relevant for FSL - here we are trying to retrieve the tech record for the organization so we can assign it 
+         *      to view it on the gantt. It assumes a 1-1 relationship i.e. 3rd party contractor org will only have a single member. 
+                This bulkified query logic is not necessary in most cases for the updates from Dispatch back to Salesforce.
         */
         map<string, dispconn__Service_Provider__c> mapDispSPs = new map<string, dispconn__Service_Provider__c>();
         map<string, ServiceTerritoryMember> mapExtTechs = new map<string, ServiceTerritoryMember>();
@@ -475,73 +519,90 @@ public class DispatchTriggerHandler {
 
         // Create a list for updating
         List<ServiceAppointment> extJobsUpdate = new List<ServiceAppointment>();
-        List<AssignedResource> extResourcesUpdate = new List<AssignedResource>();
-        List<ServiceAppointmentHistory> extHistoryUpdate = new List<ServiceAppointmentHistory>();
+        List<AssignedResource> extResourcesUpdate = new List<AssignedResource>();  //FSL: If resource exists directly on job this is not necessary
 
         // Let's update the Dispatch Job records with the changes in the trigger list
         for(dispconn__Job__c dispJob: newList) {
-            // Start a Service Work Order record with key if existing or not
+            // FSL: Start a Service Work Order record with key if existing or not
             ServiceAppointment extJob = new ServiceAppointment(Id=dispJob.Ext_Job__c);
 
-            // Apply Dispatch Job status info to Service Work Order record for Insert or Update
-            if (dispJob.dispconn__Status__c == 'Accepted') {
-                extJob.Third_Party_Accepted__c = DateTime.now(); 
-            }    
-            else if (dispJob.dispconn__Status__c == 'Completed' && (dispJob.dispconn__Status__c != oldMap.get(dispJob.Id).dispconn__Status__c)) { 
-                //extJob.Dispatch_Completed_Time__c = dispJob.dispconn__Completed_Time__c;
-                extJob.Status = 'Completed'; 
-                //if (!String.IsBlank(dispJob.dispconn__Status_Message__c)) {
-                //    extJob.Dispatch_Status_Reason__c = dispJob.dispconn__Status_Message__c;
-                //}
-            /* FSL: not handling for this case
+            if (dispJob.dispconn__Status__c != oldMap.get(dispJob.Id).dispconn__Status__c) {
+                if (dispJob.dispconn__Status__c == 'Accepted') {
+                    extJob.Third_Party_Accepted__c = DateTime.now(); 
+                }    
+                else if (dispJob.dispconn__Status__c == 'Completed') { 
+                    extJob.Status = 'Completed'; 
+                    
+                    // FSL: Not passing in complete time back but if you wish to uncomment the next line
+                    /*
+                    extJob.Dispatch_Completed_Time__c = dispJob.dispconn__Completed_Time__c;
+                    */
+
+                    // FSL: Not passing back to the Status Message but if you wish to uncomment the next block
+                    /*
+                    if (!String.IsBlank(dispJob.dispconn__Status_Message__c)) {
+                        extJob.Dispatch_Status_Reason__c = dispJob.dispconn__Status_Message__c;
+                    }
+                    */
+
+                // FSL: Not handling the Pause status case but if you wish to uncomment the next block
+                /*
                 } else if (dispJob.dispconn__Status__c == 'Paused' && (dispJob.dispconn__Status__c != oldMap.get(dispJob.Id).dispconn__Status__c)) {
-                extJob.Status = 'Paused';
-                if (!String.IsBlank(dispJob.dispconn__Status_Message__c)) {
-                    extJob.Dispatch_Status_Reason__c = dispJob.dispconn__Status_Message__c;
-                }
-            */
-            }  
-            else if (dispJob.dispconn__Status__c == 'Scheduled') { 
-                //this should only be relevant if using offer model
-                extJob.Status = 'Scheduled';
-                // if schedule has changed
-                if (oldMap == null || (dispJob.dispconn__Scheduled_Date__c != oldMap.get(dispJob.Id).dispconn__Scheduled_Date__c || 
-                                    dispJob.dispconn__Estimated_Duration__c != oldMap.get(dispJob.Id).dispconn__Estimated_Duration__c) ) {
+                    extJob.Status = 'Paused';
+                    if (!String.IsBlank(dispJob.dispconn__Status_Message__c)) {
+                        extJob.Dispatch_Status_Reason__c = dispJob.dispconn__Status_Message__c;
+                    }
+                */
+                }  
+                else if (dispJob.dispconn__Status__c == 'Scheduled') { 
+                    //this should only be relevant if using offer model
+                    extJob.Status = 'Scheduled';
+                    // if schedule has changed
+                    if (oldMap == null || (dispJob.dispconn__Scheduled_Date__c != oldMap.get(dispJob.Id).dispconn__Scheduled_Date__c || 
+                                        dispJob.dispconn__Estimated_Duration__c != oldMap.get(dispJob.Id).dispconn__Estimated_Duration__c) ) {
 
-                  extJob.SchedStartTime = dispJob.dispconn__Scheduled_Date__c;
-                  extJob.SchedEndTime = dispJob.dispconn__Scheduled_Date__c.addMinutes(Integer.valueOf(dispJob.dispconn__Estimated_Duration__c*60));
-                  extJob.Duration = dispJob.dispconn__Estimated_Duration__c;
-                }
-                // see corresponding section in bulkified query
-                if (assignMethod == 'SPOFFER') {
-                    dispconn__Service_Provider__c dispSP = mapDispSPs.get(dispJob.dispconn__Service_Provider__c);
-                    ServiceTerritoryMember extTech = mapExtTechs.get(dispSP.Ext_Service_Provider__c);
-                    AssignedResource ar = new AssignedResource();
-                    ar.ServiceResourceId = extTech.ServiceResourceId;
-                    ar.ServiceAppointmentId = dispJob.Ext_Job__c;
-                    extResourcesUpdate.add(ar);
-                }
+                      extJob.SchedStartTime = dispJob.dispconn__Scheduled_Date__c;
+                      extJob.SchedEndTime = dispJob.dispconn__Scheduled_Date__c.addMinutes(Integer.valueOf(dispJob.dispconn__Estimated_Duration__c*60));
+                      extJob.Duration = dispJob.dispconn__Estimated_Duration__c;
+                    }
+                    // FSL: see corresponding section in bulkified queries
+                    if (assignMethod == 'SPOFFER') {
+                        dispconn__Service_Provider__c dispSP = mapDispSPs.get(dispJob.dispconn__Service_Provider__c);
+                        ServiceTerritoryMember extTech = mapExtTechs.get(dispSP.Ext_Service_Provider__c);
+                        AssignedResource ar = new AssignedResource();
+                        ar.ServiceResourceId = extTech.ServiceResourceId;
+                        ar.ServiceAppointmentId = dispJob.Ext_Job__c;
+                        extResourcesUpdate.add(ar);
+                    }
 
-            }            
-            else if (oldMap == null || (dispJob.dispconn__Status__c != oldMap.get(dispJob.Id).dispconn__Status__c)) {
-                if (dispJob.dispconn__Status__c == 'Enroute') {
+                }            
+                else if (dispJob.dispconn__Status__c == 'Enroute') { 
                     extJob.Status = 'Dispatched'; 
-                    //extJob.Dispatch_Departed_Time__c = dispJob.dispconn__Departed_Time__c;
+                    // FSL: Not passing in departed time back but if you wish to uncomment the next line
+                    /*
+                    extJob.Dispatch_Departed_Time__c = dispJob.dispconn__Departed_Time__c;
+                    */
                 } else if (dispJob.dispconn__Status__c == 'Started') {
                     extJob.Status = 'In Progress'; 
-                    //extJob.Dispatch_Started_Time__c = dispJob.dispconn__Started_Time__c;
+                    // FSL: Not passing in started time back but if you wish to uncomment the next line
+                    /*                    
+                    extJob.Dispatch_Started_Time__c = dispJob.dispconn__Started_Time__c;
+                    */
                 }
+                else if (dispJob.dispconn__Status__c == 'Canceled') { 
+                    extJob.Status = 'Canceled'; 
+                    // FSL: Not passing in started time back but if you wish to uncomment the next line
+                    /*                    
+                    extJob.Dispatch_Canceled_Time__c = dispJob.dispconn__Canceled_Time__c;
+                    */
+                }    
             }
-            else if (dispJob.dispconn__Status__c == 'Canceled' && (dispJob.dispconn__Status__c != oldMap.get(dispJob.Id).dispconn__Status__c)) { 
-                //extJob.Dispatch_Completed_Time__c = dispJob.dispconn__Completed_Time__c;
-                extJob.Status = 'Canceled'; 
-            }    
 
             if (dispJob.dispconn__Rating__c != oldMap.get(dispJob.Id).dispconn__Rating__c) { 
                 extJob.Dispatch_Rating__c = dispJob.dispconn__Rating__c;
                 extJob.Dispatch_Rating_Message__c = dispJob.dispconn__Rating_Message__c;
             }
-            // Add Service Work Order record to list
+
             extJobsUpdate.add(extJob);
         }
         if (!extJobsUpdate.isEmpty()) {
@@ -560,50 +621,82 @@ public class DispatchTriggerHandler {
         if (!firstRun) { return; }
         firstRun = false;
         
-        // Gather Note Parent Ids for Dispatch Jobs
-        map<string, Note> mapNotes = new map<string, Note>();
-        for(Note nte: newList) {
-            if (nte.Id != Null && nte.ParentId != Null) {
-                Schema.sObjectType entityType = nte.parentId.getSObjectType();
-                system.debug('\n\n !!!! Note Entity: '+entityType);
+        // Gather Note Parent Ids 
+        map<string, Note> mapDispNotes = new map<string, Note>();
+        map<string, Note> mapExtNotes = new map<string, Note>();
+        for(Note note: newList) {
+            if (note.Id != Null && note.ParentId != Null) {
+                Schema.sObjectType entityType = note.parentId.getSObjectType();
+                system.debug('Note Entity: '+entityType);
                 if (entityType == dispconn__Job__c.sObjectType) {
-                    mapNotes.put(nte.ParentId, nte);
+                    mapDispNotes.put(note.ParentId, note);
                 }
+                // FSL: To process notes from the Source job to Dispatch job - change the object to your object name
+                if (entityType == ServiceAppointment.sObjectType) {
+                    mapExtNotes.put(note.ParentId, note);
+                }                
             }
         }
         // Get Dispatch Job records based on Note Parent Ids
-        List<dispconn__Job__c> dispJobs = [SELECT Id, Ext_Job__c FROM dispconn__Job__c WHERE Id IN :mapNotes.KeySet()];
-        // Create a list for Inserting
-        //List<Note> noteList = new List<Note>();  // In FSL there is no notes entity so instead we're using a custom entity on the next line
-        List<Service_Appointment_Note__c> noteList = new List<Service_Appointment_Note__c>();
+        List<dispconn__Job__c> dispJobs = [SELECT Ext_Job__c FROM dispconn__Job__c WHERE Id IN :mapDispNotes.KeySet()];
+
+        // Get Source Job records based on Note Parent Ids
+        List<dispconn__Job__c> extJobs = [SELECT Id FROM dispconn__Job__c WHERE Ext_Job__c IN :mapDispNotes.KeySet()];
+
+        List<Note> dispNoteList = new List<Note>();
+        //List<Note> extNoteList = new List<Note>();  
+        // FSL: In FSL there is no notes entity so instead we're using a custom entity on the next line. In non-FSL scenarios uncomment the line above and remove the line below
+        List<Service_Appointment_Note__c> extNoteList = new List<Service_Appointment_Note__c>();
+
+        // This section copies notes from the Dispatch job to the source job
         for(dispconn__Job__c dj: dispJobs) {
             // Go back and get the Note record
-            Note sourceNote = mapNotes.get(dj.Id);
+            Note dispNote = mapDispNotes.get(dj.Id);
             
-            /* In FSL there is no notes entity under Service Appointment so we instead created a custom one. Most cases there should be a notes entity and if so use this section
-            // Create a New Note and Copy
+            /* FSL: There is no notes entity under Service Appointment so we instead created a custom one. Most cases there should be a notes entity and if so use this section.
+                    If you are just using regular notes then uncomment the next block and remove the subsequent block
+
+            /* FSl: Uncomment for regular notes
             Note n = new Note();
             n.ParentId = dj.Ext_Job__c;
-            n.Title = sourceNote.Title;
-            n.Body = sourceNote.Body;
-            // Add new Note to the list
-            noteList.add(n);
+            n.Title = dispNote.Title;
+            n.Body = dispNote.Body;
             */
-            // Create a New Note and Copy
+
+            // FSL: Remove this block in non-FSL scenarios
             Service_Appointment_Note__c n = new Service_Appointment_Note__c();
             n.Service_Appointment__c = dj.Ext_Job__c;
-            n.Name = sourceNote.Title;
-            if (sourceNote.Body.left(4) == 'http') {
-                n.Link__c = sourceNote.Body;
+            n.Name = dispNote.Title;
+            if (dispNote.Body.left(4) == 'http') {
+                n.Link__c = dispNote.Body;
             } else {    
-                n.Body__c = sourceNote.Body;
+                n.Body__c = dispNote.Body;
             }    
+
             // Add new Note to the list
-            noteList.add(n);            
+            extNoteList.add(n);            
         }
+
+        // This section copies notes from the source job to the Dispatch job
+        for(dispconn__Job__c ej: extJobs) {
+            // Go back and get the Note record
+            Note extNote = mapExtNotes.get(ej.Ext_Job__c);
+            Note n = new Note();
+            n.ParentId = ej.Id;
+            n.Title = extNote.Title;
+            n.Body = extNote.Body;
+
+            // Add new Note to the list
+            dispNoteList.add(n);            
+        }        
+
         // If there are Note records, then apply Inserts
-        if(noteList.size() > 0) {
-            insert noteList;
+        if(extNoteList.size() > 0) {
+            insert extNoteList;
         }
+        if(dispNoteList.size() > 0) {
+            insert dispNoteList;
+        }        
     }    
+
 }

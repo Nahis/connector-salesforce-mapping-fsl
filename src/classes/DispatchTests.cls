@@ -95,7 +95,7 @@ private class DispatchTests
   }
 
 
-  @isTest(SeeAllData=true)
+  @isTest
   static void itShould()
   {
     createProductionSettings('SPOFFER');
@@ -188,7 +188,7 @@ private class DispatchTests
     update job;
     System.assertEquals(5, [select Dispatch_Rating__c from ServiceAppointment where Id = :job.Ext_Job__c].Dispatch_Rating__c); 
 
-    system.debug('\n\n*** Dispatch: add note to dispatch job');
+    system.debug('*** Dispatch: add note to dispatch job');
     resetTriggerForTest();
     Note nt = createNote(job.Id,'doooo');
     insert nt;
