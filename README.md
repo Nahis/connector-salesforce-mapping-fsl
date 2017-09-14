@@ -9,27 +9,25 @@ In short, Dispatch Connect knows how to work with the Dispatch APIs. Which means
 Dispatch Connect installs a few objects into your Salesforce instance which users do not have to even be aware of, let alone access. In fact, you can install the manage package in "Administrator Only" mode. But just so you know, the objects which it adds are:
 * Dispatch Service Provider (dispconn__service_provider) - Stores the Contractor/Service Provider/Third Party/Franchise record
 * Dispatch Field Worker (dispconn_field_tech) - stores the field worker/tech/dispatcher record. Only used when using the "Direct Assign" method (more on that later)
-* Dispatch Job (dispconn_job) - stores the job/work order/service order record
+* Dispatch Job (dispconn__job) - stores the job/work order/service order record
 * Custom Settings (dispconn__Dispatch__CS)
 
 # Dispatch-Field Service Lighning (FSL) - Business Case
-FSL is Salesforce's own field service product. We don't compete with FSL we complement it! Just as we may complement or augment any other field service initiatives that you already might have on the Salesforce platform. In the FSL case, we add support for the "FSL for non-dedicated Third Party Networks" business model. That is, while FSL works well for internal work forces and perhaps even for contractors it may struggle just a little bit with non-dedicated Third Party Networks (TPN). 
+FSL is Salesforce's own field service product. We don't compete with FSL we complement it! Just as we may complement or augment any other field service initiatives that you already might have on the Salesforce platform. In the FSL case, we add support for the "FSL for non-dedicated Third Party Contractors" business model. That is, while FSL works well for internal work forces and perhaps even for contractors it may struggle just a little bit with non-dedicated Third Party Contractors (TPC). 
 
-TPNs are typically contractors that service companies might tap into for performing all their work or to backfill when the workload is high or to cover certain geographies. A TPN is it's own organization and the service company typically does not have the insight that they have when working with internal organizations. They won't know their availability or perhaps even the number of employees they have on board. In addition, TPNs also want to manage their own service business and even if we assume they are given a license they will not want to have to continuously perform swivel chair updates!
+TPCs are typically contractors that service companies might tap into for performing all their work or to backfill when the workload is high or to cover certain geographies. A TPC is it's own organization and the service company typically does not have the insight that they have when working with internal organizations. They won't know their availability or perhaps even the number of employees they have on board. In addition, TPCs also want to manage their own service business and even if we assume they are given a license they will not want to have to continuously perform swivel chair updates!
 
-Lastly, and perhaps most importantly, are licensing concerns. Costs might be slightly prohibitive to provision a license for each TPN - remember that these TPNs typically only work for the parent company in a partial manner and a TPN may have 3 or 300 employees. Having to provision a Salesforce license for each of those cases may well be, um, a problem.
+Lastly, and perhaps most importantly, are licensing concerns. Costs might be slightly prohibitive to provision a license for each TPC - remember that these TPCs typically only work for the parent company in a partial manner and a TPC may have 3 or 300 employees. Having to provision a Salesforce license for each of those cases may well be, um, a problem.
 
-The good news is that this just happens to be where Dispatch excels! Enter "FSL for non-dedicated Third Party Networks".
+The good news is that this just happens to be where Dispatch excels! Enter "FSL for non-dedicated Third Party Contractors".
 
 # Dispatch-Field Service Lighning (FSL) - Mapping
-This github project contains the mapping used to facilitate what has been described in the business case. Please also take a look at this video to bring it to life (it will also help with the rest of this exercise):
-
-[]()
+This github project contains the mapping used to facilitate what has been described in the business case. Please also take a look [at this video](https://www.screencast.com/t/AVOHKisaT) in order to bring it to life. This is referenced throughout the code comments.
 
 # Assign Method
 At a high level there are 2 different types of methods that you'll be using to assign work. This is one of the settings that you'll be entering as part of the initial setup:
 
-* Assign to TPN (`SPOFFER`) - This is the typical third party network assignment. That is, you use a third party for fulfilling work and you assign the job to the organization, not the individual field worker. In most cases, you don't really care which field worker does the work as long as you are receiving updates and the customer is satisfied (or if not, you're alerted early!). This is the model that is employed for the FSL template.
+* Assign to TPC (`SPOFFER`) - This is the typical third party contractor assignment. That is, you use a third party for fulfilling work and you assign the job to the organization, not the individual field worker. In most cases, you don't really care which field worker does the work as long as you are receiving updates and the customer is satisfied (or if not, you're alerted early!). This is the model that is employed for the FSL template.
 
 * Assign to tech (`TECHASSIGN`) - This is the more "classic" assignment model where you give work to a specific field worker. This model is typically used by franchises or any organization where the actual person performing the work is determined by the business. Although the FSL model does not employ this, the template code shows how to get this setup and the code comments explain where this would be the case.
 
@@ -131,3 +129,6 @@ Field free to add additional fields to store info sent from the field as you see
 **This mapping is only relevant if you wish to send notes/attachments back to/from Salesforce and show them against your main objects. In general it is recommended. It is bi-directional but you can choose to make it only go in a single directional by editing the code.**
 
 Note that in the FSL example, there is no `Note` objects against `ServiceAppointment` so we created a custom object called `Service_Appointment_Note` and mapped it to that. That should not be necessary in the standard case i.e. you should be able to do a straight note-to-note mapping.
+
+## Dispatch Test Class
+A sample test class has been provided. You will obviously need to update this to cover your use cases.
