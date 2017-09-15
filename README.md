@@ -22,7 +22,7 @@ Lastly, and perhaps most importantly, are licensing concerns. Costs might be sli
 The good news is that this just happens to be where Dispatch excels! Enter "FSL for non-dedicated Third Party Contractors".
 
 # Dispatch-Field Service Lighning (FSL) - Mapping
-This github project contains the mapping used to facilitate what has been described in the business case. Please also take a look [at this video](https://www.screencast.com/t/AVOHKisaT) in order to bring it to life. This is referenced throughout the code comments.
+This github project contains the mapping used to facilitate what has been described in the business case. Please also take a look [at the setup and operation videos](https://www.screencast.com/t/CiMaaGmY) in order to bring it to life. These are referenced throughout the code comments.
 
 # Assign Method
 At a high level there are 2 different types of methods that you'll be using to assign work. This is one of the settings that you'll be entering as part of the initial setup:
@@ -32,6 +32,8 @@ At a high level there are 2 different types of methods that you'll be using to a
 * Assign to tech (`TECHASSIGN`) - This is the more "classic" assignment model where you give work to a specific field worker. This model is typically used by franchises or any organization where the actual person performing the work is determined by the business. Although the FSL model does not employ this, the template code shows how to get this setup and the code comments explain where this would be the case.
 
 # Create Your Own Mapping
+The FSL-Dispatch integration shown in the videos can be applied to any Salesforce configuration. You are going to likely want to map it to some unique Salesforce configuration that you have in your organization in order to take advantage of Dispatch platform features. If you already have a dispatch function within Salesforce that you are satisfied with then you'll likely only utilize the Dispatch mobile product. However if you're working with non-dedicated TPCs then you'll likely be utilizing both the Dispatch Portal and mobile product. To make this a reality all you need to do is change the mapping from the FSL objects and fields included in the template to the objects and fields that you are using in your Salesforce instance.
+
 The mapping exercise consists of the following components:
 
 * Dispatch Triggers - These call the trigger handler
@@ -97,7 +99,8 @@ This method is responsible for mapping from your "Technician" or "Employee" obje
 
 ### `DispatchJobToDispatch`
 
-This method is responsible for mapping from your "Work Order" or "Job" object to the `dispconn__Job` object. This is where all the magic happens! Before performing the mapping, it is recommended that you create the following custom fields:
+This method is responsible for mapping from your "Work Order" or "Job" object to the `dispconn__Job` object. This is where all the magic happens! By the way, if you have custom fields, related objects, or notes that you need the field worker to be aware of then you're going to want to include this as markdown in the `description` field - please see the code comments for an example.
+Before performing the mapping, it is recommended that you create the following custom fields:
 
 #### On the `dispconn__Job` object:
 | Suggested Field Label | Field Name | Type | Description | Add to form? |

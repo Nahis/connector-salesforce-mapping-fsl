@@ -444,6 +444,15 @@ public class DispatchTriggerHandler {
                     }  
 
                     /* JOB DESCRIPTION */
+                    /* Important to note:
+                     * The job description accepts markdown which allows you to include a lot of formatted information into your job. You can combine
+                     * relevant information from fields, notes etc. into the description - anything that the technician needs to be aware of for the job.
+                     * If you wish to see code examples for this please reach out. For example, try setting the description to this and see how it renders:
+                     *
+                     * **ENTRY NOTES:**\n\n* Special Entry: ENTER THROUGH SIDE DOOR; ENTER CODE 2008 AND TURN TO THE LEFT TO ENTER; WHEN LEAVING ENTER 2008 AND TURN TO THE RIGHT TO LOCK\n* Home Entry Code: Special Entry\n* Key: 000\n* Driving Directions: T/L ONTO WEST; T/R ONTO YORK; T/L ONTO FAIRMOUNT; BECOMES GOUCHER; BEAR RIGHT ONTO LOCH RAVEN; T/R ONTO LOCH HILL\n\n**ROOM SUMMARY:**\n\n\nRoom | Level | SA | Instructions | Desc \n---- | ----- | :-: | ----- | ----\nMaster Bedroom | Upper |  |  | \n. |  |  |  | \nBedroom | Upper | Y |  | Pink Bedroom, Top of Stairs\n. |  |  |  | \nBedroom | Upper | Y |  | Daughter&#39; s Bedroom\n. |  |  |  | \nLiving Room | Main |  |  | \n. |  |  |  | \nDining Room | Main |  |  | \n. |  |  |  | \nHallway | Upper |  |  | \n. |  |  |  | \nStairs | Main | Y |  | \n. |  |  |  | \nRec Room | Lower |  |  | \n. |  |  |  | \nKitchen | Main |  |  | \n. |  |  |  | \nMaster Bathroom | Upper |  |  | \n. |  |  |  | \nHalf Bath | Lower | Y |  | \n. |  |  |  | \n\n**CUSTOMER NOTES:**\n\n* **Equipment** Mildew remover; Wall glide; High duster\n\n* **Special Descripiton** MM ADVANTAGE 24; PLEASE BE MINDFUL OF PET HAIR UNDERNEATH FURNITURE; STEAMER DOES NOT WORK WELL ON THE FLOORS IN THIS HOME- PLEASE MOP; PLEASE SPOT CHECK WINDOWS FOR NOSE PRINTS\n\n* **Special Instructions** DOG IS BEAR; TRASH GOES TO CANS OUTSIDE;\n\n\n**PRICING:**\n\n* Due: 125.00\n* Payroll: 87.50\n* A/R: 0.00\n* Paying By: Credit Card
+                     *
+                     */
+
                     System.debug('Dispatch: description');
                     String descr = extJob.Description;
                     dispJob.dispconn__Description__c = descr;
