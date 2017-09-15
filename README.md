@@ -8,7 +8,7 @@ In short, Dispatch Connect knows how to work with the Dispatch APIs. Which means
 
 Dispatch Connect installs a few objects into your Salesforce instance which users do not have to even be aware of, let alone access. In fact, you can install the manage package in "Administrator Only" mode. But just so you know, the objects which it adds are:
 * Dispatch Service Provider (dispconn__service_provider) - Stores the Contractor/Service Provider/Third Party/Franchise record
-* Dispatch Field Worker (dispconn_field_tech) - stores the field worker/tech/dispatcher record. Only used when using the "Direct Assign" method (more on that later)
+* Dispatch Field Worker (dispconn__field_tech) - stores the field worker/tech/dispatcher record. Only used when using the "Direct Assign" method (more on that later)
 * Dispatch Job (dispconn__job) - stores the job/work order/service order record
 * Custom Settings (dispconn__Dispatch__CS)
 
@@ -47,10 +47,10 @@ In general you can deploy the triggers "as is" as there's very little logic in t
 
 All the triggershave been prefixed with the `Dispatch` but in your instance you can rename them as necessary or include the code snippet into an existing trigger. You will need to create the following triggers (feel free to drop the Dispatch prefix and ensure they are being triggered off the appropriate object):
 
-* Dispatch<ServiceProvider> - for FSL we named this `DispatchServiceTerritory`
-* Dispatch<FieldWorker> - for FSL we named this `DispatchServiceResource` even though it's technically not used
-* Dispatch<WorkOrder> - for FSL we named this `DispatchAppointment`
-* Dispatch<Note> - for FSL we named this `DispatchNote` (uses standard Notes object)
+* Dispatch[YourServiceProvider] - for FSL we named this `DispatchServiceTerritory`
+* Dispatch[YourFieldWorker] - for FSL we named this `DispatchServiceResource` 
+* Dispatch[YourWorkOrder] - for FSL we named this `DispatchAppointment`
+* Dispatch[Note] - for FSL we named this `DispatchNote` (uses standard Notes object)
 * DispatchJob - this trigger works off the `dispconn_Job` object so you should be able to leave it as is
  
 ## Dispatch Trigger Handler methods
