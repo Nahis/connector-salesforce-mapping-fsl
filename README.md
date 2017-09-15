@@ -31,7 +31,7 @@ At a high level there are 2 different types of methods that you'll be using to a
 
 * Assign to tech (`TECHASSIGN`) - This is the more "classic" assignment model where you give work to a specific field worker. This model is typically used by franchises or any organization where the actual person performing the work is determined by the business. Although the FSL model does not employ this, the template code shows how to get this setup and the code comments explain where this would be the case.
 
-# Create Your Own Mapping
+# Create Your Own Mapping Playbook
 The FSL-Dispatch integration shown in the videos can be applied to any Salesforce configuration. You are going to likely want to map it to some unique Salesforce configuration that you have in your organization in order to take advantage of Dispatch platform features. If you already have a dispatch function within Salesforce that you are satisfied with then you'll likely only utilize the Dispatch mobile product. However if you're working with non-dedicated TPCs then you'll likely be utilizing both the Dispatch Portal and mobile product. To make this a reality all you need to do is change the mapping from the FSL objects and fields included in the template to the objects and fields that you are using in your Salesforce instance.
 
 The mapping exercise consists of the following components:
@@ -47,11 +47,11 @@ Please also bear in mind that the FSL mapping is probably a bit more complex tha
 ## Triggers
 In general you can deploy the triggers "as is" as there's very little logic in them - just a call to the relevant `DispatchTriggerHandler` method. Although you may want to verify the triggering event to make sure they're sufficient/necessary (i.e. `after insert` and `after update`). 
 
-All the triggershave been prefixed with the `Dispatch` but in your instance you can rename them as necessary or include the code snippet into an existing trigger. You will need to create the following triggers (feel free to drop the Dispatch prefix and ensure they are being triggered off the appropriate object):
+All the triggers have been prefixed with `Dispatch` but in your instance you can rename them as necessary or include the code snippet into an existing trigger. You will need to create the following triggers (feel free to drop the Dispatch prefix and ensure they are being triggered off the appropriate object):
 
 * Dispatch[YourServiceProvider] - for FSL we named this `DispatchServiceTerritory`
 * Dispatch[YourFieldWorker] - for FSL we named this `DispatchServiceResource` 
-* Dispatch[YourWorkOrder] - for FSL we named this `DispatchAppointment`
+* Dispatch[YourWorkOrder] - for FSL we named this `DispatchServiceAppointment`
 * Dispatch[Note] - for FSL we named this `DispatchNote` (uses standard Notes object)
 * DispatchJob - this trigger works off the `dispconn_Job` object so you should be able to leave it as is
  
