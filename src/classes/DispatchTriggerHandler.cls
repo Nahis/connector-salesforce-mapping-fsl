@@ -617,6 +617,7 @@ public class DispatchTriggerHandler {
         if (!extJobsUpdate.isEmpty()) {
             upsert extJobsUpdate;
         }
+        // FSL: This is required because the resource is not on the job record. In cases where the resource is directly on the job record, this block is unnecessary
         if (!extResourcesUpdate.isEmpty()) {
             try {
                 insert extResourcesUpdate;
@@ -646,66 +647,69 @@ public class DispatchTriggerHandler {
                 }                
             }
         }
-        // Get Dispatch Job records based on Note Parent Ids
-        List<dispconn__Job__c> dispJobs = [SELECT Ext_Job__c FROM dispconn__Job__c WHERE Id IN :mapDispNotes.KeySet()];
+        if (mapDispNotes.size()>0) {
+            // Get Dispatch Job records based on Note Parent Ids
+            List<dispconn__Job__c> dispJobs = [SELECT Ext_Job__c FROM dispconn__Job__c WHERE Id IN :mapDispNotes.KeySet()];
+            //List<Note> extNoteList = new List<Note>();  
+            // FSL: In FSL there is no notes entity so instead we're using a custom entity on the next line. In non-FSL scenarios uncomment the line above and remove the line below
+            List<Service_Appointment_Note__c> extNoteList = new List<Service_Appointment_Note__c>();
 
-        // Get Source Job records based on Note Parent Ids
-        List<dispconn__Job__c> extJobs = [SELECT Id FROM dispconn__Job__c WHERE Ext_Job__c IN :mapDispNotes.KeySet()];
+            // This section copies notes from the Dispatch job to the source job
+            for(dispconn__Job__c dj: dispJobs) {
+                // Go back and get the Note record
+                Note dispNote = mapDispNotes.get(dj.Id);
+                
+                /* FSL: There is no notes entity under Service Appointment so we instead created a custom one. Most cases there should be a notes entity and if so use this section.
+                        If you are just using regular notes then uncomment the next block and remove the subsequent block
 
-        List<Note> dispNoteList = new List<Note>();
-        //List<Note> extNoteList = new List<Note>();  
-        // FSL: In FSL there is no notes entity so instead we're using a custom entity on the next line. In non-FSL scenarios uncomment the line above and remove the line below
-        List<Service_Appointment_Note__c> extNoteList = new List<Service_Appointment_Note__c>();
+                /* FSL: Uncomment for regular notes
+                Note n = new Note();
+                n.ParentId = dj.Ext_Job__c;
+                n.Title = dispNote.Title;
+                n.Body = dispNote.Body;
+                */
 
-        // This section copies notes from the Dispatch job to the source job
-        for(dispconn__Job__c dj: dispJobs) {
-            // Go back and get the Note record
-            Note dispNote = mapDispNotes.get(dj.Id);
-            
-            /* FSL: There is no notes entity under Service Appointment so we instead created a custom one. Most cases there should be a notes entity and if so use this section.
-                    If you are just using regular notes then uncomment the next block and remove the subsequent block
+                // FSL: Remove this block in non-FSL scenarios
+                Service_Appointment_Note__c n = new Service_Appointment_Note__c();
+                n.Service_Appointment__c = dj.Ext_Job__c;
+                n.Name = dispNote.Title;
+                if (dispNote.Body.left(4) == 'http') {
+                    n.Link__c = dispNote.Body;
+                } else {    
+                    n.Body__c = dispNote.Body;
+                }    
 
-            /* FSl: Uncomment for regular notes
-            Note n = new Note();
-            n.ParentId = dj.Ext_Job__c;
-            n.Title = dispNote.Title;
-            n.Body = dispNote.Body;
-            */
+                // Add new Note to the list
+                extNoteList.add(n);            
+            }
+            if(extNoteList.size() > 0) {
+                insert extNoteList;
+            }            
+        }    
 
-            // FSL: Remove this block in non-FSL scenarios
-            Service_Appointment_Note__c n = new Service_Appointment_Note__c();
-            n.Service_Appointment__c = dj.Ext_Job__c;
-            n.Name = dispNote.Title;
-            if (dispNote.Body.left(4) == 'http') {
-                n.Link__c = dispNote.Body;
-            } else {    
-                n.Body__c = dispNote.Body;
-            }    
+        if (mapExtNotes.size()>0) {
 
-            // Add new Note to the list
-            extNoteList.add(n);            
-        }
+            // Get Source Job records based on Note Parent Ids
+            List<dispconn__Job__c> extJobs = [SELECT Id FROM dispconn__Job__c WHERE Ext_Job__c IN :mapExtNotes.KeySet()];
+            List<Note> dispNoteList = new List<Note>();
 
-        // This section copies notes from the source job to the Dispatch job
-        for(dispconn__Job__c ej: extJobs) {
-            // Go back and get the Note record
-            Note extNote = mapExtNotes.get(ej.Ext_Job__c);
-            Note n = new Note();
-            n.ParentId = ej.Id;
-            n.Title = extNote.Title;
-            n.Body = extNote.Body;
 
-            // Add new Note to the list
-            dispNoteList.add(n);            
-        }        
+            // This section copies notes from the source job to the Dispatch job
+            for(dispconn__Job__c ej: extJobs) {
+                // Go back and get the Note record
+                Note extNote = mapExtNotes.get(ej.Ext_Job__c);
+                Note n = new Note();
+                n.ParentId = ej.Id;
+                n.Title = extNote.Title;
+                n.Body = extNote.Body;
 
-        // If there are Note records, then apply Inserts
-        if(extNoteList.size() > 0) {
-            insert extNoteList;
-        }
-        if(dispNoteList.size() > 0) {
-            insert dispNoteList;
-        }        
+                // Add new Note to the list
+                dispNoteList.add(n);            
+            }        
+            if(dispNoteList.size() > 0) {
+                insert dispNoteList;
+            }     
+        }       
     }    
 
 }

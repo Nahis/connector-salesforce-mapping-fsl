@@ -6,7 +6,7 @@ A pre-requisite is to install the Dispatch Connect managed package into your ins
 
 In short, Dispatch Connect knows how to work with the Dispatch APIs. Which means you do not have to. The only thing you need to know is how to map from Salesforce to... Salesforce! If you can do that, then you have all the technology requirements to get going. And in case you are concerned - Dispatch Connect respects Salesforce Governer Limits. It does no additional queries and all DML actions are bulkified.
 
-Dispatch Connect installs a few objects into your Salesforce instance which users do not have to even be aware of, let alone access. In fact, you can install the manage package in "Administrator Only" mode. But just so you know, the objects which it adds are:
+Dispatch Connect installs a few objects into your Salesforce instance which users do not have to even be aware of, let alone access. In fact, you can install the managed package in "Administrator Only" mode. But just so you know, the objects which it adds are:
 * Dispatch Service Provider (dispconn__service_provider) - Stores the Contractor/Service Provider/Third Party/Franchise record
 * Dispatch Field Worker (dispconn__field_tech) - stores the field worker/tech/dispatcher record. Only used when using the "Direct Assign" method (more on that later)
 * Dispatch Job (dispconn__job) - stores the job/work order/service order record
