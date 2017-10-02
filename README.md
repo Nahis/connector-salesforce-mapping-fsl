@@ -10,7 +10,7 @@ Dispatch Connect installs a few objects into your Salesforce instance which user
 * Dispatch Service Provider (dispconn__service_provider) - Stores the Contractor/Service Provider/Third Party/Franchise record
 * Dispatch Field Worker (dispconn__field_tech) - stores the field worker/tech/dispatcher record. Only used when using the "Direct Assign" method (more on that later)
 * Dispatch Job (dispconn__job) - stores the job/work order/service order record
-* Dispatch Appointment (dispconn__appointment) - stores data at the appointment level if you wish to more granularity. By default it will not store data at this level.
+* Dispatch Appointment (dispconn__appointment) - stores data at the appointment level if you need this granularity. By default it will not store data at this level.
 * Custom Settings (dispconn__Dispatch__CS)
 
 # Dispatch-Field Service Lightning (FSL) - Business Case
