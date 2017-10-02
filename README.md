@@ -10,9 +10,10 @@ Dispatch Connect installs a few objects into your Salesforce instance which user
 * Dispatch Service Provider (dispconn__service_provider) - Stores the Contractor/Service Provider/Third Party/Franchise record
 * Dispatch Field Worker (dispconn__field_tech) - stores the field worker/tech/dispatcher record. Only used when using the "Direct Assign" method (more on that later)
 * Dispatch Job (dispconn__job) - stores the job/work order/service order record
+* Dispatch Appointment (dispconn__appointment) - stores data at the appointment level if you wish to more granularity. By default it will not store data at this level.
 * Custom Settings (dispconn__Dispatch__CS)
 
-# Dispatch-Field Service Lighning (FSL) - Business Case
+# Dispatch-Field Service Lightning (FSL) - Business Case
 FSL is Salesforce's own field service product. We don't compete with FSL we complement it! Just as we may complement or augment any other field service initiatives that you already might have on the Salesforce platform. In the FSL case, we add support for the "FSL for non-dedicated Third Party Contractors" business model. That is, while FSL works well for internal work forces and perhaps even for contractors it may struggle just a little bit with non-dedicated Third Party Contractors (TPC). 
 
 TPCs are typically contractors that service companies might tap into for performing all their work or to backfill when the workload is high or to cover certain geographies. A TPC is it's own organization and the service company typically does not have the insight that they have when working with internal organizations. They won't know their availability or perhaps even the number of employees they have on board. In addition, TPCs also want to manage their own service business and even if we assume they are given a license they will not want to have to continuously perform swivel chair updates!
@@ -21,7 +22,7 @@ Lastly, and perhaps most importantly, are licensing concerns. Costs might be sli
 
 The good news is that this just happens to be where Dispatch excels! Enter "FSL for non-dedicated Third Party Contractors".
 
-# Dispatch-Field Service Lighning (FSL) - Mapping
+# Dispatch-Field Service Lightning (FSL) - Mapping
 This github project contains the mapping used to facilitate what has been described in the business case. Please also take a look [at the setup and operation videos](https://www.screencast.com/t/CiMaaGmY) in order to bring it to life. These are referenced throughout the code comments.
 
 # Assign Method
