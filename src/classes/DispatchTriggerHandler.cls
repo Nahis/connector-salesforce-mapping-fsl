@@ -207,10 +207,9 @@ public class DispatchTriggerHandler {
                     dispTech.dispconn__Last_Name__c  = u.LastName;
                     dispTech.dispconn__Email2__c = u.Email;
                     dispTech.dispconn__Phone__c = u.MobilePhone;
-                    dispTech.dispconn__View_Other_Tech_Schedules__c = False;
-                    //if (extTech.Dispatch_Portal_Access__c) {
+                    dispTech.dispconn__Role__c = 'technician';
                     if (extTech.ResourceType == 'D') {
-                        dispTech.dispconn__View_Other_Tech_Schedules__c = True;
+                        dispTech.dispconn__Role__c = 'dispatcher';
                     }
                     dispTech.dispconn__Active__c = extTech.IsActive;
                     /***********
