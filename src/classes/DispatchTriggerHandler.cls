@@ -68,11 +68,17 @@ public class DispatchTriggerHandler {
                         dispSP.dispconn__Address_City__c        = null;
                         dispSP.dispconn__Address_State__c       = null;
                         dispSP.dispconn__Address_Postal_Code__c = null;
+                        dispSP.dispconn__Address_Country__c    = null;
                     } else {
                         dispSP.dispconn__Address_Street__c      = extSP.Street;
                         dispSP.dispconn__Address_City__c        = extSP.City;
                         dispSP.dispconn__Address_State__c       = extSP.State;
                         dispSP.dispconn__Address_Postal_Code__c = extSP.PostalCode;
+                        dispSP.dispconn__Address_Country__c = 'United States';
+                        if (extSP.Country == 'CA' || extSP.Country == 'Canada' ) {  
+                            dispSP.dispconn__Address_Country__c = 'Canada';
+                        }    
+
                     }
                     /***********
                      * FSL: MAPPING END 
@@ -199,12 +205,11 @@ public class DispatchTriggerHandler {
                     } 
                     dispTech.dispconn__First_Name__c = u.FirstName;
                     dispTech.dispconn__Last_Name__c  = u.LastName;
-                    dispTech.dispconn__Email__c = u.Email;
+                    dispTech.dispconn__Email2__c = u.Email;
                     dispTech.dispconn__Phone__c = u.MobilePhone;
-                    dispTech.dispconn__View_Other_Tech_Schedules__c = False;
-                    //if (extTech.Dispatch_Portal_Access__c) {
+                    dispTech.dispconn__Role__c = 'technician';
                     if (extTech.ResourceType == 'D') {
-                        dispTech.dispconn__View_Other_Tech_Schedules__c = True;
+                        dispTech.dispconn__Role__c = 'dispatcher';
                     }
                     dispTech.dispconn__Active__c = extTech.IsActive;
                     /***********
@@ -347,6 +352,7 @@ public class DispatchTriggerHandler {
                     dispJob.Ext_Job__c = extJob.Id;
                     // Initialize - sync statuses. Recommend leaving as is.
                     dispJob.dispconn__Last_Sync_Response__c = 'Pending Sync:'+DateTime.now();
+                    dispJob.dispconn__Last_Sync_Response_Code__c = Null;
                     dispJob.dispconn__Synced__c = False;
 
                     /***********
@@ -424,7 +430,7 @@ public class DispatchTriggerHandler {
                         dispJob.dispconn__Address_City__c        = c.MailingCity;
                         dispJob.dispconn__Address_State__c       = c.MailingState;
                         dispJob.dispconn__Address_Postal_Code__c = c.MailingPostalCode;
-                        if (c.MailingCountry == 'CA' ) {
+                        if (c.MailingCountry == 'CA' || c.MailingCountry == 'Canada') {
                             dispJob.dispconn__Address_Country__c = 'Canada';
                         }    
                     } else {
@@ -433,7 +439,7 @@ public class DispatchTriggerHandler {
                         dispJob.dispconn__Address_City__c        = extJob.City;
                         dispJob.dispconn__Address_State__c       = extJob.State;
                         dispJob.dispconn__Address_Postal_Code__c = extJob.PostalCode;
-                        if (c.MailingCountry == 'CA' ) {
+                        if (c.MailingCountry == 'CA' || c.MailingCountry == 'Canada') {
                             dispJob.dispconn__Address_Country__c = 'Canada';
                         }                        
                     }                   
