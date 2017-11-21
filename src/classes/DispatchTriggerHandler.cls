@@ -664,7 +664,7 @@ public class DispatchTriggerHandler {
 
                 /* FSL: Uncomment for regular notes
                 Note n = new Note();
-                n.ParentId = dj.Ext_Job__c;
+                n.ParentId = dj.Id;
                 n.Title = dispNote.Title;
                 n.Body = dispNote.Body;
                 */
@@ -699,7 +699,7 @@ public class DispatchTriggerHandler {
                 // Go back and get the Note record
                 Note extNote = mapExtNotes.get(ej.Ext_Job__c);
                 Note n = new Note();
-                n.ParentId = ej.Id;
+                n.ParentId = ej.Ext_Job__c;
                 n.Title = extNote.Title;
                 n.Body = extNote.Body;
 
