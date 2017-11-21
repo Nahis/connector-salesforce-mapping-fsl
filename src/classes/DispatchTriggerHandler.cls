@@ -68,11 +68,17 @@ public class DispatchTriggerHandler {
                         dispSP.dispconn__Address_City__c        = null;
                         dispSP.dispconn__Address_State__c       = null;
                         dispSP.dispconn__Address_Postal_Code__c = null;
+                        dispSP.dispconn__Address_Country__c    = null;
                     } else {
                         dispSP.dispconn__Address_Street__c      = extSP.Street;
                         dispSP.dispconn__Address_City__c        = extSP.City;
                         dispSP.dispconn__Address_State__c       = extSP.State;
                         dispSP.dispconn__Address_Postal_Code__c = extSP.PostalCode;
+                        dispSP.dispconn__Address_Country__c = 'United States';
+                        if (extSP.Country == 'CA' || extSP.Country == 'Canada' ) {  
+                            dispSP.dispconn__Address_Country__c = 'Canada';
+                        }    
+
                     }
                     /***********
                      * FSL: MAPPING END 
@@ -424,7 +430,7 @@ public class DispatchTriggerHandler {
                         dispJob.dispconn__Address_City__c        = c.MailingCity;
                         dispJob.dispconn__Address_State__c       = c.MailingState;
                         dispJob.dispconn__Address_Postal_Code__c = c.MailingPostalCode;
-                        if (c.MailingCountry == 'CA' ) {
+                        if (c.MailingCountry == 'CA' || c.MailingCountry == 'Canada') {
                             dispJob.dispconn__Address_Country__c = 'Canada';
                         }    
                     } else {
@@ -433,7 +439,7 @@ public class DispatchTriggerHandler {
                         dispJob.dispconn__Address_City__c        = extJob.City;
                         dispJob.dispconn__Address_State__c       = extJob.State;
                         dispJob.dispconn__Address_Postal_Code__c = extJob.PostalCode;
-                        if (c.MailingCountry == 'CA' ) {
+                        if (c.MailingCountry == 'CA' || c.MailingCountry == 'Canada') {
                             dispJob.dispconn__Address_Country__c = 'Canada';
                         }                        
                     }                   
