@@ -352,6 +352,7 @@ public class DispatchTriggerHandler {
                     dispJob.Ext_Job__c = extJob.Id;
                     // Initialize - sync statuses. Recommend leaving as is.
                     dispJob.dispconn__Last_Sync_Response__c = 'Pending Sync:'+DateTime.now();
+                    dispconn__Last_Sync_Response_Code__c = Null;
                     dispJob.dispconn__Synced__c = False;
 
                     /***********
