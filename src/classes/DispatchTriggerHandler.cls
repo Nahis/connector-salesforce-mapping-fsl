@@ -199,7 +199,7 @@ public class DispatchTriggerHandler {
                     } 
                     dispTech.dispconn__First_Name__c = u.FirstName;
                     dispTech.dispconn__Last_Name__c  = u.LastName;
-                    dispTech.dispconn__Email__c = u.Email;
+                    dispTech.dispconn__Email2__c = u.Email;
                     dispTech.dispconn__Phone__c = u.MobilePhone;
                     dispTech.dispconn__View_Other_Tech_Schedules__c = False;
                     //if (extTech.Dispatch_Portal_Access__c) {
