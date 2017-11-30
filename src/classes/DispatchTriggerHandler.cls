@@ -62,6 +62,7 @@ public class DispatchTriggerHandler {
                     dispSP.dispconn__Phone__c = extSP.Phone__c;
                     dispSP.dispconn__Email__c = extSP.Email__c;
                     dispSP.dispconn__Usage__c = 'normal';
+                    //dispSP.dispconn__SF_Org_ID__c = extSP.FriendlyExternalId; // Use this if you have an friendly alternate key instead of the Salesforce ID (will make it easier for our support team to identify)
                     // need all 4 address components to have a valid address
                     if (String.isBlank(extSP.Street) || String.isBlank(extSP.City) || String.isBlank(extSP.State) || String.isBlank(extSP.PostalCode) ) {
                         dispSP.dispconn__Address_Street__c      = null;
