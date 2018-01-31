@@ -269,7 +269,7 @@ public class DispatchTriggerHandler {
         if (newListRelevant.size() > 0 ) {
             // FSL: Get Dispatch Jobs records based on Job Ids and put in map. This query should be the same in your instance 
             //      assuming you have a resourcesId variable defined
-            List<dispconn__Job__c> dispJobs = [SELECT Id, Ext_Job__c, dispconn__Field_Tech__c FROM dispconn__Job__c WHERE Ext_Job__c IN :jobIds];
+            List<dispconn__Job__c> dispJobs = [SELECT Id, Ext_Job__c, dispconn__Field_Tech__c FROM dispconn__Job__c WHERE Ext_Job__c IN :jobIds FOR UPDATE];
             map<string, dispconn__Job__c> mapDispJobs = new map<string, dispconn__Job__c>();
             for(dispconn__Job__c j: dispJobs) {
                 mapDispJobs.put(j.Ext_Job__c, j);
@@ -413,8 +413,8 @@ public class DispatchTriggerHandler {
                     if (c == null) {
                         throw new jobException('Contact not linked to the job');
                     }
-                    dispJob.dispconn__First_Name__c = c.FirstName;
-                    dispJob.dispconn__Last_Name__c = c.LastName;
+                    dispJob.dispconn__First_Name__c = c.FirstName.left(50);
+                    dispJob.dispconn__Last_Name__c = c.LastName.left(50);
                     String mobilePhone = c.MobilePhone;
                     if (!String.isBlank(mobilePhone)) {
                         dispJob.dispconn__Mobile__c = mobilePhone.left(14);
@@ -618,6 +618,28 @@ public class DispatchTriggerHandler {
                 extJob.Dispatch_Rating__c = dispJob.dispconn__Rating__c;
                 extJob.Dispatch_Rating_Message__c = dispJob.dispconn__Rating_Message__c;
             }
+            if (!String.isBlank(dispJob.dispconn__Custom_Form_Data__c) && dispJob.dispconn__Custom_Form_Data__c != oldMap.get(dispJob.Id).dispconn__Custom_Form_Data__c) { 
+                /***
+                Process custom form data in this section. See example form in the "sample" folder. Using that you can design your form and 
+                send it to Dispatch for entry. Key values used will need to match the value in mapFormData.get('keyValue')
+                ***/
+                try {
+                    CustomFormObject customForm = (CustomFormObject)JSON.deserialize(dispJob.dispconn__Custom_Form_Data__c, CustomFormObject.class);
+                    map<String, String> mapFormData = new map<String, String>();
+                    for(FormDataObject fde: customForm.form_data) {
+                        mapFormData.put(fde.name,fde.value);
+                    }
+                    if (customForm.form_name == 'your_form_name' && mapFormData.size() > 0) {  
+                        //extJob.Brand__c = getStringValue(mapFormData.get('brand'),255);
+                        //extJob.Model__c = getStringValue(mapFormData.get('model'),150);
+                        //extJob.Job_Length__c = getIntegerValue(mapFormData.get('job_length_hours'));
+                        //extJob.Price_Part_1__c = getDecimalValue(mapFormData.get('part_1_price'));
+                    }
+                } catch (Exception e) {
+                    // do nothing - don't want a malformed json to break the integration. Or a text field where a numeric is expected etc.
+                    system.debug('Dispatch: Error processing custom form: '+e.getMessage());
+                }
+            }
 
             extJobsUpdate.add(extJob);
         }
@@ -633,6 +655,42 @@ public class DispatchTriggerHandler {
             }
         }        
     }
+
+    private class CustomFormObject {
+        // Helper class used for deserializing custom form data
+        public String form_name;
+        public List<FormDataObject> form_data;       
+    }    
+    private class FormDataObject {
+        // Helper class used for deserializing custom form data
+        public String name;
+        public String value;
+    } 
+    public static String getStringValue(String value, Integer maxLength) {
+        // Helper method for processing custom form data
+        if (!String.isBlank(value)) {
+            return value.left(maxLength);
+        } else {
+            return null;
+        }
+    }
+    public static Decimal getDecimalValue(String value) {
+        // Helper method for processing custom form data
+        if (!String.isBlank(value)) {
+            return Decimal.valueOf(value.replaceAll('[^0-9.]', ''));
+        } else {
+            return null;
+        }
+    }    
+
+    public static Integer getIntegerValue(String value) {
+        // Helper method for processing custom form data
+        if (!String.isBlank(value)) {
+            return Integer.valueOf(math.round(Decimal.valueOf(value)));
+        } else {
+            return null;
+        }
+    }    
 
     public static void DispatchNoteFromToDispatch(List<Note> newList){
         if (!firstRun) { return; }

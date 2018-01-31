@@ -1,0 +1,185 @@
+{
+	"fields": [{
+		"key": "brand",
+		"label": "Brand",
+		"type": "string"
+	}, {
+		"key": "model",
+		"label": "Model",
+		"type": "string"
+	}, {
+		"key": "serial",
+		"label": "Serial",
+		"type": "string"
+	}, {
+		"key": "age",
+		"label": "Age (in years)",
+		"type": "number"
+	}, {
+		"key": "condition",
+		"label": "Condition",
+		"type": "string"
+	}, {
+		"key": "issue_description",
+		"label": "Issue Description",
+		"type": "string"
+	}, {
+		"key": "part_1",
+		"label": "Part 1 name",
+		"type": "string"
+	}, {
+		"key": "part_1_number",
+		"label": "Part 1 number",
+		"type": "number"
+	}, {
+		"key": "part_1_price",
+		"label": "Part 1 price",
+		"type": "number"
+	}, {
+		"key": "part_2",
+		"label": "Part 2 name",
+		"type": "string"
+	}, {
+		"key": "part_2_number",
+		"label": "Part 2 number",
+		"type": "number"
+	}, {
+		"key": "part_2_price",
+		"label": "Part 2 price",
+		"type": "number"
+	}, {
+		"key": "part_3",
+		"label": "Part 3 name",
+		"type": "string"
+	}, {
+		"key": "part_3_number",
+		"label": "Part 3 number",
+		"type": "number"
+	}, {
+		"key": "part_3_price",
+		"label": "Part 3 price",
+		"type": "number"
+	}, {
+		"key": "part_4",
+		"label": "Part 4 name",
+		"type": "string"
+	}, {
+		"key": "part_4_number",
+		"label": "Part 4 number",
+		"type": "number"
+	}, {
+		"key": "part_4_price",
+		"label": "Part 4 price",
+		"type": "number"
+	}, {
+		"key": "stoppage_location_1_price",
+		"label": "Stoppage Location 1 price",
+		"type": "number"
+	}, {
+		"key": "stoppage_location_2_price",
+		"label": "Stoppage Location 2 price",
+		"type": "number"
+	}, {
+		"key": "stoppage_location_3_price",
+		"label": "Stoppage Location 3 price",
+		"type": "number"
+	}, {
+		"key": "stoppage_location_4_price",
+		"label": "Stoppage Location 4 price",
+		"type": "number"
+	}, {
+		"key": "job_length_min",
+		"label": "Minimum job hours",
+		"type": "number"
+	}, {
+		"key": "job_length_hours",
+		"label": "How long will the job take?",
+		"type": "number"
+	}, {
+		"key": "labor_rate",
+		"label": "Labor rate (required only if not already assigned to account)",
+		"type": "number"
+	}, {
+		"key": "flat_rate_pricing",
+		"label": "Flat rate pricing",
+		"type": "number"
+	}, {
+		"key": "tax",
+		"label": "Tax",
+		"type": "number"
+	}, {
+		"key": "trip_charge",
+		"label": "Trip charge",
+		"type": "number"
+	}, {
+		"key": "previous_repairs",
+		"label": "Did unit have any previous repairs?",
+		"toggle_labels": {
+			"false": "No",
+			"true": "Yes"
+		},
+		"type": "boolean"
+	}, {
+		"key": "scf_collect",
+		"label": "Did the tech collect the SCF?",
+		"toggle_labels": {
+			"false": "No",
+			"true": "Yes"
+		},
+		"type": "boolean"
+	}, {
+		"key": "rust_or_corrosion",
+		"label": "Rust or corrosion",
+		"toggle_labels": {
+			"false": "No",
+			"true": "Yes"
+		},
+		"type": "boolean"
+	}, {
+		"key": "on_site_now",
+		"label": "Are you on site right now?",
+		"toggle_labels": {
+			"false": "No",
+			"true": "Yes"
+		},
+		"type": "boolean"
+	}, {
+		"key": "job_can_be_done_today",
+		"label": "Can the job be done today?",
+		"toggle_labels": {
+			"false": "No",
+			"true": "Yes"
+		},
+		"type": "boolean"
+	}, {
+		"key": "unit_been_maintained",
+		"label": "Has the unit been maintained?",
+		"toggle_labels": {
+			"false": "No",
+			"true": "Yes"
+		},
+		"type": "boolean"
+	}, {
+		"key": "leaking_freon",
+		"label": "Is the unit leaking freon?",
+		"toggle_labels": {
+			"false": "No",
+			"true": "Yes"
+		},
+		"type": "boolean"
+	}, {
+		"key": "leaking_water",
+		"label": "Is the Unit leaking water?",
+		"toggle_labels": {
+			"false": "No",
+			"true": "Yes"
+		},
+		"type": "boolean"
+	}, {
+		"key": "cause_of_failure",
+		"label": "What was the cause of failure?",
+		"type": "string"
+	}],
+	"form_id": "autho1",
+	"title": "Authorization"
+}
