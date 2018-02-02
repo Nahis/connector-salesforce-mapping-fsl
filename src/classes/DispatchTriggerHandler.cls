@@ -413,8 +413,12 @@ public class DispatchTriggerHandler {
                     if (c == null) {
                         throw new jobException('Contact not linked to the job');
                     }
-                    dispJob.dispconn__First_Name__c = c.FirstName.left(50);
-                    dispJob.dispconn__Last_Name__c = c.LastName.left(50);
+                    if (!String.isBlank(c.FirstName)) {
+                        dispJob.dispconn__First_Name__c = c.FirstName.left(50);
+                    }
+                    if (!String.isBlank(c.LastName)) {
+                        dispJob.dispconn__Last_Name__c = c.LastName.left(50);
+                    }
                     String mobilePhone = c.MobilePhone;
                     if (!String.isBlank(mobilePhone)) {
                         dispJob.dispconn__Mobile__c = mobilePhone.left(14);
