@@ -33,6 +33,8 @@ At a high level there are 2 different types of methods that you'll be using to a
 * Assign to tech (`TECHASSIGN`) - This is the more "classic" assignment model where you give work to a specific field worker. This model is typically used by franchises or any organization where the actual person performing the work is determined by the business. Although the FSL model does not employ this, the template code shows how to get this setup and the code comments explain where this would be the case.
 
 # Create Your Own Mapping Playbook
+Note that besides the integration walkthrough below, we have also provided some other (sometimes simpler) mapping examples under the "additional mapping examples" folder. That can be used as a practical reference for other "what if" scenarios.
+
 The FSL-Dispatch integration shown in the videos can be applied to any Salesforce configuration. You are going to likely want to map it to some unique Salesforce configuration that you have in your organization in order to take advantage of Dispatch platform features. If you already have a dispatch function within Salesforce that you are satisfied with then you'll likely only utilize the Dispatch mobile product. However if you're working with non-dedicated TPCs then you'll likely be utilizing both the Dispatch Portal and mobile product. To make this a reality all you need to do is change the mapping from the FSL objects and fields included in the template to the objects and fields that you are using in your Salesforce instance.
 
 The mapping exercise consists of the following components:

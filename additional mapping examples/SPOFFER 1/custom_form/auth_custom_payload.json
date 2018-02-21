@@ -1,0 +1,224 @@
+{
+  "type": "Job",
+  "event": "{{originalEvent.event}}",
+  "timestamp": "{{momentjs eventData.timestamp 'UTC' 'YYYY-MM-DDTHH:mm:ssZ'}}",
+  "job": {
+    "id": "{{job._id}}",
+    "external_id": "{{job.external_id}}"
+  },
+  "custom_form": {
+    "form_name": "{{originalEvent.data.form_type}}",
+    "form_data": [
+      {
+        "name": "auth_type",
+        "value": "{{originalEvent.data.form_data.auth_type}}"
+      }
+      {{#if originalEvent.data.form_data.brand}}
+      ,{
+        "name": "brand",
+        "value": "{{originalEvent.data.form_data.brand}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.model}}     
+      ,{
+        "name": "model",
+        "value": "{{originalEvent.data.form_data.model}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.serial}}
+      ,{
+        "name": "serial",
+        "value": "{{originalEvent.data.form_data.serial}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.age}}
+      ,{
+        "name": "age",
+        "value": "{{originalEvent.data.form_data.age}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.condition}}
+      ,{
+        "name": "condition",
+        "value": "{{originalEvent.data.form_data.condition}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.issue_description}}
+      ,{
+        "name": "issue_description",
+        "value": "{{originalEvent.data.form_data.issue_description}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.part_1}}
+      ,{
+        "name": "part_1",
+        "value": "{{originalEvent.data.form_data.part_1}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.part_1_number}}
+      ,{
+        "name": "part_1_number",
+        "value": "{{originalEvent.data.form_data.part_1_number}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.part_1_price}}
+      ,{
+        "name": "part_1_price",
+        "value": "{{originalEvent.data.form_data.part_1_price}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.part_2}}
+      ,{
+        "name": "part_2",
+        "value": "{{originalEvent.data.form_data.part_2}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.part_2_number}}
+      ,{
+        "name": "part_2_number",
+        "value": "{{originalEvent.data.form_data.part_2_number}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.part_2_price}}
+      ,{
+        "name": "part_2_price",
+        "value": "{{originalEvent.data.form_data.part_2_price}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.part_3}}
+      ,{
+        "name": "part_3",
+        "value": "{{originalEvent.data.form_data.part_3}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.part_3_number}}
+      ,{
+        "name": "part_3_number",
+        "value": "{{originalEvent.data.form_data.part_3_number}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.part_3_price}}
+      ,{
+        "name": "part_3_price",
+        "value": "{{originalEvent.data.form_data.part_3_price}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.part_4}}
+      ,{
+        "name": "part_4",
+        "value": "{{originalEvent.data.form_data.part_4}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.part_4_number}}
+      ,{
+        "name": "part_4_number",
+        "value": "{{originalEvent.data.form_data.part_4_number}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.part_4_price}}
+      ,{
+        "name": "part_4_price",
+        "value": "{{originalEvent.data.form_data.part_4_price}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.stoppage_location_1}}
+      ,{
+        "name": "stoppage_location_1",
+        "value": "{{originalEvent.data.form_data.stoppage_location_1}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.stoppage_location_1_price}}
+      ,{
+        "name": "stoppage_location_1_price",
+        "value": "{{originalEvent.data.form_data.stoppage_location_1_price}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.stoppage_location_2}}
+      ,{
+        "name": "stoppage_location_2",
+        "value": "{{originalEvent.data.form_data.stoppage_location_2}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.stoppage_location_2}}
+      ,{
+        "name": "stoppage_location_2_price",
+        "value": "{{originalEvent.data.form_data.stoppage_location_2}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.stoppage_location_3}}
+      ,{
+        "name": "stoppage_location_3",
+        "value": "{{originalEvent.data.form_data.stoppage_location_3}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.stoppage_location_3_price}}
+      ,{
+        "name": "stoppage_location_3_price",
+        "value": "{{originalEvent.data.form_data.stoppage_location_3_price}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.stoppage_location_4}}
+      ,{
+        "name": "stoppage_location_4",
+        "value": "{{originalEvent.data.form_data.stoppage_location_4}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.stoppage_location_4_price}}
+      ,{
+        "name": "stoppage_location_4_price",
+        "value": "{{originalEvent.data.form_data.stoppage_location_4_price}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.job_length_hours}}
+      ,{
+        "name": "job_length_hours",
+        "value": "{{originalEvent.data.form_data.job_length_hours}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.labor_rate}}
+      ,{
+        "name": "labor_rate",
+        "value": "{{originalEvent.data.form_data.labor_rate}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.flat_rate_pricing}}
+      ,{
+        "name": "flat_rate_pricing",
+        "value": "{{originalEvent.data.form_data.flat_rate_pricing}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.tax}}
+      ,{
+        "name": "tax",
+        "value": "{{originalEvent.data.form_data.tax}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.trip_charge}}
+      ,{
+        "name": "trip_charge",
+        "value": "{{originalEvent.data.form_data.trip_charge}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.previous_repairs}}
+      ,{
+        "name": "previous_repairs",
+        "value": "{{originalEvent.data.form_data.previous_repairs}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.scf_collect}}
+      ,{
+        "name": "scf_collect",
+        "value": "{{originalEvent.data.form_data.scf_collect}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.rust_or_corrosion}}
+      ,{
+        "name": "rust_or_corrosion",
+        "value": "{{originalEvent.data.form_data.rust_or_corrosion}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.on_site_now}}
+      ,{
+        "name": "on_site_now",
+        "value": "{{originalEvent.data.form_data.on_site_now}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.job_can_be_done_today}}
+      ,{
+        "name": "job_can_be_done_today",
+        "value": "{{originalEvent.data.form_data.job_can_be_done_today}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.unit_been_maintained}}
+      ,{
+        "name": "unit_been_maintained",
+        "value": "{{originalEvent.data.form_data.unit_been_maintained}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.leaking_freon}}
+      ,{
+        "name": "leaking_freon",
+        "value": "{{originalEvent.data.form_data.leaking_freon}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.leaking_water}}
+      ,{
+        "name": "leaking_water",
+        "value": "{{originalEvent.data.form_data.leaking_water}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.cause_of_failure}}
+      ,{
+        "name": "cause_of_failure",
+        "value": "{{originalEvent.data.form_data.cause_of_failure}}"
+      }
+      {{/if}}{{#if originalEvent.data.form_data.send_for_approval}}
+      ,{
+        "name": "send_for_approval",
+        "value": "{{originalEvent.data.form_data.send_for_approval}}"
+      }
+      {{/if}}
+    ]
+  }
+}
