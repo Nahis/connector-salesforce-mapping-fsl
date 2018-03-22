@@ -427,10 +427,13 @@ public class DispatchTriggerHandler {
                         dispJob.dispconn__Email__c = c.Email;
                     }
 
+                    //external ID reference (optional but recommended) - try use "friendly" ID whereever possible
+                    dispJob.dispconn__SF_Job_Id__c = extJob.AppointmentNumber; 
+                    dispJob.dispconn__SF_Customer_Id__c = extJob.ContactId; 
                     /* JOB ADDRESS */
                     dispJob.dispconn__Address_Country__c = 'United States';
                     if (extJob.Street == null) { // if address on service appointment is null, get it from linked contact
-                        dispJob.dispconn__SF_Job_Id__c = extJob.AppointmentNumber; 
+                        
                         dispJob.dispconn__Address_Street__c      = c.MailingStreet;
                         dispJob.dispconn__Address_City__c        = c.MailingCity;
                         dispJob.dispconn__Address_State__c       = c.MailingState;
