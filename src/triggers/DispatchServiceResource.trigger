@@ -9,7 +9,7 @@ trigger DispatchServiceResource on ServiceResource (after insert, after update) 
 		if (DispatchTriggerHandler.triggersEnabled()) {
 			DispatchTriggerHandler.disableTriggers();
 
-			DispatchTriggerHandler.DispatchTechToDispatch(Trigger.new, Trigger.old, Trigger.newMap, Trigger.oldMap);
+			DispatchTriggerHandler.TechToDispatch(Trigger.new, Trigger.old, Trigger.newMap, Trigger.oldMap);
 
 			DispatchTriggerHandler.enableTriggers();
 		}

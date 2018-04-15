@@ -8,7 +8,7 @@ trigger DispatchServiceAppointment on ServiceAppointment (after update) {
 	if (Trigger.isUpdate && Trigger.isAfter) {
 		if (DispatchTriggerHandler.triggersEnabled()) {
 			DispatchTriggerHandler.disableTriggers();
-			DispatchTriggerHandler.DispatchJobToDispatch(Trigger.new, Trigger.old, Trigger.newMap, Trigger.oldMap);
+			DispatchTriggerHandler.JobToDispatch(Trigger.new, Trigger.old, Trigger.newMap, Trigger.oldMap);
 
 			DispatchTriggerHandler.enableTriggers();
 		}

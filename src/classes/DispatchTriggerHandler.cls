@@ -12,7 +12,7 @@ public class DispatchTriggerHandler {
     public class techException extends Exception {}
     public class jobException extends Exception {}
 
-    public static void DispatchServiceProviderToDispatch(List<ServiceTerritory> newList,List<ServiceTerritory> oldList, Map<Id,ServiceTerritory> newMap, Map<Id,ServiceTerritory> oldMap){
+    public static void ServiceProviderToDispatch(List<ServiceTerritory> newList,List<ServiceTerritory> oldList, Map<Id,ServiceTerritory> newMap, Map<Id,ServiceTerritory> oldMap){
         if (!firstRun) { return; }
         firstRun = false;
         // FSL: Gather Location Ids - we're going to use these to match on existing Service Provider records
@@ -96,7 +96,7 @@ public class DispatchTriggerHandler {
         }    
     }
 
-    public static void DispatchTechToDispatch(List<ServiceResource> newList,List<ServiceResource> oldList, Map<Id,ServiceResource> newMap, Map<Id,ServiceResource> oldMap) {
+    public static void TechToDispatch(List<ServiceResource> newList,List<ServiceResource> oldList, Map<Id,ServiceResource> newMap, Map<Id,ServiceResource> oldMap) {
         /* FSL: Technically this method is not required for the SPOFFER assignment method which is what we're using in the demo. However, this logic
          *      is being included and will technically work so you can see how it's done.
          */
@@ -234,7 +234,7 @@ public class DispatchTriggerHandler {
         }
     }
 
-    public static void DispatchJobToDispatch(List<ServiceAppointment> newList,List<ServiceAppointment> oldList, Map<Id,ServiceAppointment> newMap, Map<Id,ServiceAppointment> oldMap){
+    public static void JobToDispatch(List<ServiceAppointment> newList,List<ServiceAppointment> oldList, Map<Id,ServiceAppointment> newMap, Map<Id,ServiceAppointment> oldMap){
         /* FSL: This is where you map your job to a Dispatch job. Think of a job as a discrete unit of work that will be assigned to a resource. Although a job can 
          *      have multiple appointments. At the moment, these additional appointments would happen on the Dispatch side after the job has been sent over (using the 
          *      SPOFFER assignment strategy).
@@ -508,7 +508,7 @@ public class DispatchTriggerHandler {
         }
     }    
 
-    public static void DispatchJobFromDispatch(List<dispconn__Job__c> newList,List<dispconn__Job__c> oldList, Map<Id,dispconn__Job__c> newMap, Map<Id,dispconn__Job__c> oldMap){
+    public static void JobFromDispatch(List<dispconn__Job__c> newList,List<dispconn__Job__c> oldList, Map<Id,dispconn__Job__c> newMap, Map<Id,dispconn__Job__c> oldMap){
         if (!firstRun) { return; }
         firstRun = false;
 
@@ -699,7 +699,7 @@ public class DispatchTriggerHandler {
         }
     }    
 
-    public static void DispatchNoteFromToDispatch(List<Note> newList){
+    public static void NoteFromToDispatch(List<Note> newList){
         if (!firstRun) { return; }
         firstRun = false;
         

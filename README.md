@@ -65,7 +65,7 @@ Some conventions to note in the Trigger Handler:
 * You'll notice variables with an `ext` and `disp` prefix. `ext` prefixed variables point to your core objects whereas the `disp` prefixed variable point to the corresponding `dispconn` objects.
 * The linkage from your main object is done by adding a lookup field from the `dispconn` object to your main object. The technical name of this lookup has been prefixed with `Ext` e.g. the `Ext_Service_Provider` lookup on the `dispconn__service_provider` object links to your main object (`ServiceTerritory` in FSL)
  
-### `DispatchServiceProviderToDispatch`
+### `ServiceProviderToDispatch`
 This method is responsible for mapping from your "Service Provider" or "Location" object to the `dispconn__Service_Provider` object. Before performing the mapping, it is recommended that you create the following custom fields:
 
 #### On YOUR Service Provider/Location object:
@@ -82,7 +82,7 @@ This method is responsible for mapping from your "Service Provider" or "Location
 | ------------- | ------------- | ------------- | ------------- | :--------: |
 | Name of your linked object (Service Territory in FSL) | Ext_Service_Provider | Lookup to your corresponding object (Service Territory in FSL) | Linkage | Yes |
 
- ### `DispatchTechToDispatch`
+### `TechToDispatch`
 **This mapping is only relevant if you are using the `TECHASSIGN` dispatch method. See above for description.**
 
 This method is responsible for mapping from your "Technician" or "Employee" object to the `dispconn__Field_Tech` object. Before performing the mapping, it is recommended that you create the following custom fields:
@@ -100,7 +100,7 @@ This method is responsible for mapping from your "Technician" or "Employee" obje
 | ------------- | ------------- | ------------- | ------------- | :--------: |
 | Name of your linked object (Service Resource in FSL) | Ext_Tech | Lookup to your corresponding object (Service Resource in FSL) | Linkage | Yes |
 
-### `DispatchJobToDispatch`
+### `JobToDispatch`
 
 This method is responsible for mapping from your "Work Order" or "Job" object to the `dispconn__Job` object. This is where all the magic happens! By the way, if you have custom fields, related objects, or notes that you need the field worker to be aware of then you're going to want to include this as markdown in the `description` field - please see the code comments for an example.
 Before performing the mapping, it is recommended that you create the following custom fields:
@@ -131,7 +131,7 @@ This method is responsible for mapping job updates coming back in from Dispatch.
 
 Field free to add additional fields to store info sent from the field as you see fit.
 
- ### `DispatchNoteFromToDispatch`
+### `NoteFromToDispatch`
 **This mapping is only relevant if you wish to send notes/attachments back to/from Salesforce and show them against your main objects. In general it is recommended. It is bi-directional but you can choose to make it only go in a single directional by editing the code.**
 
 Note that in the FSL example, there is no `Note` objects against `ServiceAppointment` so we created a custom object called `Service_Appointment_Note` and mapped it to that. That should not be necessary in the standard case i.e. you should be able to do a straight note-to-note mapping.
