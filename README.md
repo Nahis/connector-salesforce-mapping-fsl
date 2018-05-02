@@ -2,7 +2,8 @@
 This is the mapping between Dispatch Connect and Field Service Lightning (FSL). It also serves as a template for mapping using Dispatch Connect. **That is, the code examples and this documentation will walk you through mapping your own Salesforce implementation to Dispatch regardless of what objects you are using, customizations you have made or 3rd party tool that you are using. You heard right - you can connect your Salesforce instance to Dispatch no matter what you have done with Salesforce!** In addition, we use entirely custom objects so you will not be incurring additional license costs either. And it's easy too! Read on to find out why.
 
 The following diagram gives a high level overview:
-![Dispatch Connect Salesforce App](https://user-images.githubusercontent.com/8817368/39519362-20aececa-4e0f-11e8-9d09-4fb5114b7ee6.png)
+
+![Dispatch Connect Salesforce App](https://user-images.githubusercontent.com/8817368/39519475-92544b9a-4e0f-11e8-89f0-d336d82fc2ce.png)
 
 
 # Dispatch Connect
