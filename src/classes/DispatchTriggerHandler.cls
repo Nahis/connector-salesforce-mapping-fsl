@@ -353,7 +353,7 @@ public class DispatchTriggerHandler {
                     dispJob.Ext_Job__c = extJob.Id;
                     // Initialize - sync statuses. Recommend leaving as is.
                     dispJob.dispconn__Last_Sync_Response__c = 'Pending Sync:'+DateTime.now();
-                    dispJob.dispconn__Last_Sync_Response_Code__c = Null;
+                    //dispJob.dispconn__Last_Sync_Response_Code__c = Null;
                     dispJob.dispconn__Synced__c = False;
 
                     /***********
@@ -519,146 +519,152 @@ public class DispatchTriggerHandler {
         map<string, dispconn__Service_Provider__c> mapDispSPs = new map<string, dispconn__Service_Provider__c>();
         map<string, ServiceTerritoryMember> mapExtTechs = new map<string, ServiceTerritoryMember>();
         String assignMethod = dispconn__Dispatch_CS__c.getInstance('DISPATCH_ASSIGN_METHOD').dispconn__Value__c;
-        if (assignMethod == 'SPOFFER') {
-            Set<Id> spIds = new Set<Id>();    
-            for(dispconn__Job__c j: newList) {
+        Set<Id> spIds = new Set<Id>();
+        List<dispconn__Job__c> newListRelevantUpdate = new List<dispconn__Job__c>();
+        for(dispconn__Job__c j: newList) {
+            if (j.dispconn__Last_Sync__c != null && (j.dispconn__Last_Sync__c != oldMap.get(j.Id).dispconn__Last_Sync__c)) {
                 if (j.dispconn__Service_Provider__c != null) {
                     spIds.add(j.dispconn__Service_Provider__c);
-                }    
-            }
-            Set<Id> locationIds = new Set<Id>();    
-            List<dispconn__Service_Provider__c> dispSPs = [SELECT Id,Ext_Service_Provider__c FROM dispconn__Service_Provider__c WHERE Id IN :spIds];
-            for(dispconn__Service_Provider__c sp: dispSPs) {
-                mapDispSPs.put(sp.Id, sp);
-                locationIds.add(sp.Ext_Service_Provider__c);
-            }
-
-            // This relationship is assumed to be 1-1 which should be a good assumption for this setup
-            List<ServiceTerritoryMember> extTechs = [SELECT ServiceTerritoryId,ServiceResourceId FROM ServiceTerritoryMember WHERE ServiceTerritoryId IN :locationIds];
-            for(ServiceTerritoryMember t: extTechs) {
-                mapExtTechs.put(t.ServiceTerritoryId, t);
-            }
-        }    
-
-        // Create a list for updating
-        List<ServiceAppointment> extJobsUpdate = new List<ServiceAppointment>();
-        List<AssignedResource> extResourcesUpdate = new List<AssignedResource>();  //FSL: If resource exists directly on job this is not necessary
-
-        // Let's update the Dispatch Job records with the changes in the trigger list
-        for(dispconn__Job__c dispJob: newList) {
-            // FSL: Start a Service Work Order record with key if existing or not
-            ServiceAppointment extJob = new ServiceAppointment(Id=dispJob.Ext_Job__c);
-
-            if (dispJob.dispconn__Status__c != oldMap.get(dispJob.Id).dispconn__Status__c) {
-                if (dispJob.dispconn__Status__c == 'Accepted') {
-                    extJob.Third_Party_Accepted__c = DateTime.now(); 
-                }    
-                else if (dispJob.dispconn__Status__c == 'Completed') { 
-                    extJob.Status = 'Completed'; 
-                    
-                    // FSL: Not passing in complete time back but if you wish to uncomment the next line
-                    /*
-                    extJob.Dispatch_Completed_Time__c = dispJob.dispconn__Completed_Time__c;
-                    */
-
-                    // FSL: Not passing back to the Status Message but if you wish to uncomment the next block
-                    /*
-                    if (!String.IsBlank(dispJob.dispconn__Status_Message__c)) {
-                        extJob.Dispatch_Status_Reason__c = dispJob.dispconn__Status_Message__c;
-                    }
-                    */
-
-                // FSL: Not handling the Pause status case but if you wish to uncomment the next block
-                /*
-                } else if (dispJob.dispconn__Status__c == 'Paused' && (dispJob.dispconn__Status__c != oldMap.get(dispJob.Id).dispconn__Status__c)) {
-                    extJob.Status = 'Paused';
-                    if (!String.IsBlank(dispJob.dispconn__Status_Message__c)) {
-                        extJob.Dispatch_Status_Reason__c = dispJob.dispconn__Status_Message__c;
-                    }
-                */
-                }  
-                else if (dispJob.dispconn__Status__c == 'Scheduled') { 
-                    //this should only be relevant if using offer model
-                    extJob.Status = 'Scheduled';
-                    // if schedule has changed
-                    if (oldMap == null || (dispJob.dispconn__Scheduled_Date__c != oldMap.get(dispJob.Id).dispconn__Scheduled_Date__c || 
-                                        dispJob.dispconn__Estimated_Duration__c != oldMap.get(dispJob.Id).dispconn__Estimated_Duration__c) ) {
-
-                      extJob.SchedStartTime = dispJob.dispconn__Scheduled_Date__c;
-                      extJob.SchedEndTime = dispJob.dispconn__Scheduled_Date__c.addMinutes(Integer.valueOf(dispJob.dispconn__Estimated_Duration__c*60));
-                      extJob.Duration = dispJob.dispconn__Estimated_Duration__c;
-                    }
-                    // FSL: see corresponding section in bulkified queries
-                    if (assignMethod == 'SPOFFER') {
-                        dispconn__Service_Provider__c dispSP = mapDispSPs.get(dispJob.dispconn__Service_Provider__c);
-                        ServiceTerritoryMember extTech = mapExtTechs.get(dispSP.Ext_Service_Provider__c);
-                        AssignedResource ar = new AssignedResource();
-                        ar.ServiceResourceId = extTech.ServiceResourceId;
-                        ar.ServiceAppointmentId = dispJob.Ext_Job__c;
-                        extResourcesUpdate.add(ar);
-                    }
-
-                }            
-                else if (dispJob.dispconn__Status__c == 'Enroute') { 
-                    extJob.Status = 'Dispatched'; 
-                    // FSL: Not passing in departed time back but if you wish to uncomment the next line
-                    /*
-                    extJob.Dispatch_Departed_Time__c = dispJob.dispconn__Departed_Time__c;
-                    */
-                } else if (dispJob.dispconn__Status__c == 'Started') {
-                    extJob.Status = 'In Progress'; 
-                    // FSL: Not passing in started time back but if you wish to uncomment the next line
-                    /*                    
-                    extJob.Dispatch_Started_Time__c = dispJob.dispconn__Started_Time__c;
-                    */
                 }
-                else if (dispJob.dispconn__Status__c == 'Canceled') { 
-                    extJob.Status = 'Canceled'; 
-                    // FSL: Not passing in started time back but if you wish to uncomment the next line
-                    /*                    
-                    extJob.Dispatch_Canceled_Time__c = dispJob.dispconn__Canceled_Time__c;
-                    */
-                }    
+                newListRelevantUpdate.add(j);
             }
+        }
+        if (newListRelevantUpdate.size() > 0) {
+            if (assignMethod == 'SPOFFER') {
+                Set<Id> locationIds = new Set<Id>();    
+                List<dispconn__Service_Provider__c> dispSPs = [SELECT Id,Ext_Service_Provider__c FROM dispconn__Service_Provider__c WHERE Id IN :spIds];
+                for(dispconn__Service_Provider__c sp: dispSPs) {
+                    mapDispSPs.put(sp.Id, sp);
+                    locationIds.add(sp.Ext_Service_Provider__c);
+                }
 
-            if (dispJob.dispconn__Rating__c != oldMap.get(dispJob.Id).dispconn__Rating__c) { 
-                extJob.Dispatch_Rating__c = dispJob.dispconn__Rating__c;
-                extJob.Dispatch_Rating_Message__c = dispJob.dispconn__Rating_Message__c;
+                // This relationship is assumed to be 1-1 which should be a good assumption for this setup
+                List<ServiceTerritoryMember> extTechs = [SELECT ServiceTerritoryId,ServiceResourceId FROM ServiceTerritoryMember WHERE ServiceTerritoryId IN :locationIds];
+                for(ServiceTerritoryMember t: extTechs) {
+                    mapExtTechs.put(t.ServiceTerritoryId, t);
+                }
+            }    
+
+            // Create a list for updating
+            List<ServiceAppointment> extJobsUpdate = new List<ServiceAppointment>();
+            List<AssignedResource> extResourcesUpdate = new List<AssignedResource>();  //FSL: If resource exists directly on job this is not necessary
+
+            // Let's update the Dispatch Job records with the changes in the trigger list
+            for(dispconn__Job__c dispJob: newListRelevantUpdate) {
+                // FSL: Start a Service Work Order record with key if existing or not
+                ServiceAppointment extJob = new ServiceAppointment(Id=dispJob.Ext_Job__c);
+
+                if (dispJob.dispconn__Status__c != oldMap.get(dispJob.Id).dispconn__Status__c) {
+                    if (dispJob.dispconn__Status__c == 'Accepted') {
+                        extJob.Third_Party_Accepted__c = DateTime.now(); 
+                    }    
+                    else if (dispJob.dispconn__Status__c == 'Completed') { 
+                        extJob.Status = 'Completed'; 
+                        
+                        // FSL: Not passing in complete time back but if you wish to uncomment the next line
+                        /*
+                        extJob.Dispatch_Completed_Time__c = dispJob.dispconn__Completed_Time__c;
+                        */
+
+                        // FSL: Not passing back to the Status Message but if you wish to uncomment the next block
+                        /*
+                        if (!String.IsBlank(dispJob.dispconn__Status_Message__c)) {
+                            extJob.Dispatch_Status_Reason__c = dispJob.dispconn__Status_Message__c;
+                        }
+                        */
+
+                    // FSL: Not handling the Pause status case but if you wish to uncomment the next block
+                    /*
+                    } else if (dispJob.dispconn__Status__c == 'Paused' && (dispJob.dispconn__Status__c != oldMap.get(dispJob.Id).dispconn__Status__c)) {
+                        extJob.Status = 'Paused';
+                        if (!String.IsBlank(dispJob.dispconn__Status_Message__c)) {
+                            extJob.Dispatch_Status_Reason__c = dispJob.dispconn__Status_Message__c;
+                        }
+                    */
+                    }  
+                    else if (dispJob.dispconn__Status__c == 'Scheduled') { 
+                        //this should only be relevant if using offer model
+                        extJob.Status = 'Scheduled';
+                        // if schedule has changed
+                        if (oldMap == null || (dispJob.dispconn__Scheduled_Date__c != oldMap.get(dispJob.Id).dispconn__Scheduled_Date__c || 
+                                            dispJob.dispconn__Estimated_Duration__c != oldMap.get(dispJob.Id).dispconn__Estimated_Duration__c) ) {
+
+                          extJob.SchedStartTime = dispJob.dispconn__Scheduled_Date__c;
+                          extJob.SchedEndTime = dispJob.dispconn__Scheduled_Date__c.addMinutes(Integer.valueOf(dispJob.dispconn__Estimated_Duration__c*60));
+                          extJob.Duration = dispJob.dispconn__Estimated_Duration__c;
+                        }
+                        // FSL: see corresponding section in bulkified queries
+                        if (assignMethod == 'SPOFFER') {
+                            dispconn__Service_Provider__c dispSP = mapDispSPs.get(dispJob.dispconn__Service_Provider__c);
+                            ServiceTerritoryMember extTech = mapExtTechs.get(dispSP.Ext_Service_Provider__c);
+                            AssignedResource ar = new AssignedResource();
+                            ar.ServiceResourceId = extTech.ServiceResourceId;
+                            ar.ServiceAppointmentId = dispJob.Ext_Job__c;
+                            extResourcesUpdate.add(ar);
+                        }
+
+                    }            
+                    else if (dispJob.dispconn__Status__c == 'Enroute') { 
+                        extJob.Status = 'Dispatched'; 
+                        // FSL: Not passing in departed time back but if you wish to uncomment the next line
+                        /*
+                        extJob.Dispatch_Departed_Time__c = dispJob.dispconn__Departed_Time__c;
+                        */
+                    } else if (dispJob.dispconn__Status__c == 'Started') {
+                        extJob.Status = 'In Progress'; 
+                        // FSL: Not passing in started time back but if you wish to uncomment the next line
+                        /*                    
+                        extJob.Dispatch_Started_Time__c = dispJob.dispconn__Started_Time__c;
+                        */
+                    }
+                    else if (dispJob.dispconn__Status__c == 'Canceled') { 
+                        extJob.Status = 'Canceled'; 
+                        // FSL: Not passing in started time back but if you wish to uncomment the next line
+                        /*                    
+                        extJob.Dispatch_Canceled_Time__c = dispJob.dispconn__Canceled_Time__c;
+                        */
+                    }    
+                }
+
+                if (dispJob.dispconn__Rating__c != oldMap.get(dispJob.Id).dispconn__Rating__c) { 
+                    extJob.Dispatch_Rating__c = dispJob.dispconn__Rating__c;
+                    extJob.Dispatch_Rating_Message__c = dispJob.dispconn__Rating_Message__c;
+                }
+                if (!String.isBlank(dispJob.dispconn__Custom_Form_Data__c) && dispJob.dispconn__Custom_Form_Data__c != oldMap.get(dispJob.Id).dispconn__Custom_Form_Data__c) { 
+                    /***
+                    Process custom form data in this section. See example form in the "sample" folder. Using that you can design your form and 
+                    send it to Dispatch for entry. Key values used will need to match the value in mapFormData.get('keyValue')
+                    ***/
+                    try {
+                        CustomFormObject customForm = (CustomFormObject)JSON.deserialize(dispJob.dispconn__Custom_Form_Data__c, CustomFormObject.class);
+                        map<String, String> mapFormData = new map<String, String>();
+                        for(FormDataObject fde: customForm.form_data) {
+                            mapFormData.put(fde.name,fde.value);
+                        }
+                        if (customForm.form_name == 'your_form_name' && mapFormData.size() > 0) {  
+                            //extJob.Brand__c = getStringValue(mapFormData.get('brand'),255);
+                            //extJob.Model__c = getStringValue(mapFormData.get('model'),150);
+                            //extJob.Job_Length__c = getIntegerValue(mapFormData.get('job_length_hours'));
+                            //extJob.Price_Part_1__c = getDecimalValue(mapFormData.get('part_1_price'));
+                        }
+                    } catch (Exception e) {
+                        // do nothing - don't want a malformed json to break the integration. Or a text field where a numeric is expected etc.
+                        system.debug('Dispatch: Error processing custom form: '+e.getMessage());
+                    }
+                }
+
+                extJobsUpdate.add(extJob);
             }
-            if (!String.isBlank(dispJob.dispconn__Custom_Form_Data__c) && dispJob.dispconn__Custom_Form_Data__c != oldMap.get(dispJob.Id).dispconn__Custom_Form_Data__c) { 
-                /***
-                Process custom form data in this section. See example form in the "sample" folder. Using that you can design your form and 
-                send it to Dispatch for entry. Key values used will need to match the value in mapFormData.get('keyValue')
-                ***/
+            if (!extJobsUpdate.isEmpty()) {
+                upsert extJobsUpdate;
+            }
+            // FSL: This is required because the resource is not on the job record. In cases where the resource is directly on the job record, this block is unnecessary
+            if (!extResourcesUpdate.isEmpty()) {
                 try {
-                    CustomFormObject customForm = (CustomFormObject)JSON.deserialize(dispJob.dispconn__Custom_Form_Data__c, CustomFormObject.class);
-                    map<String, String> mapFormData = new map<String, String>();
-                    for(FormDataObject fde: customForm.form_data) {
-                        mapFormData.put(fde.name,fde.value);
-                    }
-                    if (customForm.form_name == 'your_form_name' && mapFormData.size() > 0) {  
-                        //extJob.Brand__c = getStringValue(mapFormData.get('brand'),255);
-                        //extJob.Model__c = getStringValue(mapFormData.get('model'),150);
-                        //extJob.Job_Length__c = getIntegerValue(mapFormData.get('job_length_hours'));
-                        //extJob.Price_Part_1__c = getDecimalValue(mapFormData.get('part_1_price'));
-                    }
-                } catch (Exception e) {
-                    // do nothing - don't want a malformed json to break the integration. Or a text field where a numeric is expected etc.
-                    system.debug('Dispatch: Error processing custom form: '+e.getMessage());
+                    insert extResourcesUpdate;
+                } catch (Exception e)  {
+                    //ignore unique violation error
                 }
-            }
-
-            extJobsUpdate.add(extJob);
-        }
-        if (!extJobsUpdate.isEmpty()) {
-            upsert extJobsUpdate;
-        }
-        // FSL: This is required because the resource is not on the job record. In cases where the resource is directly on the job record, this block is unnecessary
-        if (!extResourcesUpdate.isEmpty()) {
-            try {
-                insert extResourcesUpdate;
-            } catch (Exception e)  {
-                //ignore unique violation error
             }
         }        
     }
