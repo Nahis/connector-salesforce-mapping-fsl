@@ -526,7 +526,7 @@ public class DispatchTriggerHandler {
                 if (j.dispconn__Service_Provider__c != null) {
                     spIds.add(j.dispconn__Service_Provider__c);
                 }
-                newListRelevantUpdate.add(j);
+                newListRelevantUpdate.add(j); 
             }
         }
         if (newListRelevantUpdate.size() > 0) {
