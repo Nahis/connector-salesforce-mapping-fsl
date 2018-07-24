@@ -3,7 +3,7 @@ This is the mapping between Dispatch Connect and Field Service Lightning (FSL). 
 
 The following diagram gives a high level overview:
 
-![Dispatch Connect Salesforce App](https://user-images.githubusercontent.com/8817368/39519475-92544b9a-4e0f-11e8-89f0-d336d82fc2ce.png)
+![Dispatch Connect Salesforce App](https://user-images.githubusercontent.com/8817368/43160886-1b2f9d96-8f8f-11e8-95f7-f8edbf9704f4.png)
 
 
 # Dispatch Connect
