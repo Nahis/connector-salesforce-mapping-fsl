@@ -17,6 +17,7 @@ Dispatch Connect installs a few objects into your Salesforce instance which user
 * Dispatch Job (dispconn__job) - stores the job/work order/service order record
 * Dispatch Appointment (dispconn__appointment) - stores data at the appointment level if you need this granularity. By default it will not store data at this level.
 * Custom Settings (dispconn__Dispatch__CS)
+* Dispatch Webhook (dispconn__Dispatch_Webhook__c) - stores webhook updates sent back from Dispatch and processes them to the Dispatch Job. Data is ephemeral.
 
 # Dispatch-Field Service Lightning (FSL) - Business Case
 FSL is Salesforce's own field service product. We don't compete with FSL we complement it! Just as we may complement or augment any other field service initiatives that you already might have on the Salesforce platform. In the FSL case, we add support for the "FSL for non-dedicated Third Party Contractors" business model. That is, while FSL works well for internal work forces and perhaps even for contractors it may struggle just a little bit with non-dedicated Third Party Contractors (TPC). 

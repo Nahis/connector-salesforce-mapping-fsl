@@ -108,7 +108,7 @@ public class DispatchTriggerHandler {
         Set<Id> resourceIds = new Set<Id>();
         Set<Id> userIds = new Set<Id>();
         for(ServiceResource sr: newList) {
-            if (sr.Dispatch_Me__c && (sr.ResourceType == 'T' || sr.ResourceType == 'D')) {  //if you want to control which employees become dispatch users. If all users under an enabled service provider then replace this condition with a check on service provider flag
+            if (sr.ResourceType == 'T' || sr.ResourceType == 'D') {  //if you want to control which employees become dispatch users. If all users under an enabled service provider then replace this condition with a check on service provider flag
                 resourceIds.add(sr.Id);
                 userIds.add(sr.RelatedRecordId);
                 newListRelevant.add(sr);
@@ -170,54 +170,64 @@ public class DispatchTriggerHandler {
                     //lookup corresponding Dispatch Field Worker from map - you should not have to change this logic
                     dispconn__Field_Tech__c dispTech;
                     dispTech = mapDispTechs.get(extTech.Id);
+                    Boolean dispatchUser = true;
                     if (dispTech == Null) {
-                        // Tech not found insert
-                        dispTech = new dispconn__Field_Tech__c(); 
+                        if (extTech.Dispatch_me__c) {
+                            // Tech not found insert
+                            dispTech = new dispconn__Field_Tech__c(); 
+                        } else {
+                            dispatchUser = false;
+                        }                        
                     }   
-                    dispTech.Ext_Tech__c  = extTech.Id;                    
+                    if (dispatchUser) {
+                        dispTech.Ext_Tech__c  = extTech.Id;                    
 
-                    /***********
-                     * FSl: MAPPING START:
-                     * Update this section with mapping changes to your specific instance. 
-                     * 'extTech' contains the fields to your field tech/worker entity. Map those fields to
-                     * 'dispTech' which is the corresponding dispconn entity
-                     */
+                        /***********
+                         * FSl: MAPPING START:
+                         * Update this section with mapping changes to your specific instance. 
+                         * 'extTech' contains the fields to your field tech/worker entity. Map those fields to
+                         * 'dispTech' which is the corresponding dispconn entity
+                         */
 
-                    //FSL: lookup corresponding Service Territory from map
-                    ServiceTerritoryMember stm;
-                    stm = mapExtServiceTerritories.get(extTech.Id);
-                    if (stm == Null) {
-                        throw new spException('Member is not linked to a valid Service Territory');
-                    } 
+                        //FSL: lookup corresponding Service Territory from map
+                        ServiceTerritoryMember stm;
+                        stm = mapExtServiceTerritories.get(extTech.Id);
+                        if (stm == Null) {
+                            throw new spException('Member is not linked to a valid Service Territory');
+                        } 
 
-                    //FSL: lookup corresponding Dispatch Service Provider from map
-                    dispconn__Service_Provider__c sp;
-                    sp = mapDispSPs.get(stm.ServiceTerritoryId);
-                    if (sp == Null) {
-                        throw new spException('Service Provider does not exist in Dispatch entity');
+                        //FSL: lookup corresponding Dispatch Service Provider from map
+                        dispconn__Service_Provider__c sp;
+                        sp = mapDispSPs.get(stm.ServiceTerritoryId);
+                        if (sp == Null) {
+                            throw new spException('Service Provider does not exist in Dispatch entity');
+                        }
+                        dispTech.dispconn__Service_Provider__c = sp.Id;
+
+                        // FSL: lookup corresponding user from map
+                        User u;
+                        u = mapExtUsers.get(extTech.RelatedRecordId);
+                        if (u == Null) {
+                            throw new techException('Linked user not active');
+                        } 
+                        dispTech.dispconn__First_Name__c = u.FirstName;
+                        dispTech.dispconn__Last_Name__c  = u.LastName;
+                        dispTech.dispconn__Email2__c = u.Email;
+                        dispTech.dispconn__Phone__c = u.MobilePhone;
+                        dispTech.dispconn__Role__c = 'technician';
+                        if (extTech.ResourceType == 'D') {
+                            dispTech.dispconn__Role__c = 'dispatcher';
+                        }
+                        dispTech.dispconn__Active__c = extTech.IsActive;
+                        if (!extTech.Dispatch_me__c) {
+                            dispTech.dispconn__Active__c = false;
+                        }
+                        /***********
+                         * FSL: MAPPING END 
+                         */
+
+                        dispTechsUpdate.add(dispTech);
                     }
-                    dispTech.dispconn__Service_Provider__c = sp.Id;
-
-                    // FSL: lookup corresponding user from map
-                    User u;
-                    u = mapExtUsers.get(extTech.RelatedRecordId);
-                    if (u == Null) {
-                        throw new techException('Linked user not active');
-                    } 
-                    dispTech.dispconn__First_Name__c = u.FirstName;
-                    dispTech.dispconn__Last_Name__c  = u.LastName;
-                    dispTech.dispconn__Email2__c = u.Email;
-                    dispTech.dispconn__Phone__c = u.MobilePhone;
-                    dispTech.dispconn__Role__c = 'technician';
-                    if (extTech.ResourceType == 'D') {
-                        dispTech.dispconn__Role__c = 'dispatcher';
-                    }
-                    dispTech.dispconn__Active__c = extTech.IsActive;
-                    /***********
-                     * FSL: MAPPING END 
-                     */
-
-                    dispTechsUpdate.add(dispTech);   
 
                 } catch (techException e) {
                     // do nothing as SP not yet set up
@@ -511,6 +521,8 @@ public class DispatchTriggerHandler {
     public static void JobFromDispatch(List<dispconn__Job__c> newList,List<dispconn__Job__c> oldList, Map<Id,dispconn__Job__c> newMap, Map<Id,dispconn__Job__c> oldMap){
         if (!firstRun) { return; }
         firstRun = false;
+        User uObj = [Select id,Profile.UserLicense.Name from User where Id=: UserInfo.getUserId()];
+        if (uObj.Profile.UserLicense.Name != 'Guest User License' && !Test.isRunningTest()) { return; } // verifies update is from webhook
 
         /* FSL: This block is only relevant for FSL - here we are trying to retrieve the tech record for the organization so we can assign it 
          *      to view it on the gantt. It assumes a 1-1 relationship i.e. 3rd party contractor org will only have a single member. 
@@ -522,12 +534,10 @@ public class DispatchTriggerHandler {
         Set<Id> spIds = new Set<Id>();
         List<dispconn__Job__c> newListRelevantUpdate = new List<dispconn__Job__c>();
         for(dispconn__Job__c j: newList) {
-            if (j.dispconn__Last_Sync__c != null && (j.dispconn__Last_Sync__c != oldMap.get(j.Id).dispconn__Last_Sync__c)) {
-                if (j.dispconn__Service_Provider__c != null) {
-                    spIds.add(j.dispconn__Service_Provider__c);
-                }
-                newListRelevantUpdate.add(j); 
+            if (j.dispconn__Service_Provider__c != null) {
+                spIds.add(j.dispconn__Service_Provider__c);
             }
+            newListRelevantUpdate.add(j); 
         }
         if (newListRelevantUpdate.size() > 0) {
             if (assignMethod == 'SPOFFER') {
