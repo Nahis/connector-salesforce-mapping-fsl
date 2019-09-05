@@ -460,7 +460,13 @@ public class DispatchTriggerHandler {
                         if (c.MailingCountry == 'CA' || c.MailingCountry == 'Canada') {
                             dispJob.dispconn__Address_Country__c = 'Canada';
                         }                        
-                    }                   
+                    }    
+                    /* Add this section if you want to pass in your own coords (don't forget to retrieve fields from query)
+                    if (extJob.Your__Latitude__s != null && extJob.Your__Longitude__s != null) { // If coords passed use them
+                        dispJob.dispconn__Appointment_Location__Latitude__s = extJob.Your__Latitude__s;
+                        dispJob.dispconn__Appointment_Location__Longitude__s = extJob.Your__Longitude__s;
+                    }
+                    */
 
                     /* JOB TITLE */
                     if (!String.isBlank(extJob.Subject)) {
