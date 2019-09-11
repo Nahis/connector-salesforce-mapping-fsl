@@ -1,0 +1,52 @@
+// The following are the steps that need to take place after refreshing the UAT environment from production:
+
+//	Run script to delete the Dispatch Jobs, Field Techs, Service Providers (or use the truncate option) 
+
+    // delete dispatch me objects
+    DELETE [SELECT Id FROM dispconn__Job__c];
+    DELETE [SELECT Id FROM dispconn__Field_Tech__c];
+    DELETE [SELECT Id FROM dispconn__Service_Provider__c];
+
+//  Reset flags on your objects that are used for Dispatch sync (e.g. Employee and Location objects). Sample script:
+
+    // reset Dispatch me flag
+    List<Location__c> lstRecordsToUpdate = new List<Location__c>();
+    for (Location__c lst : [SELECT Id 
+                     FROM Location__c
+                     WHERE Dispatch_me__c = True]) 
+    {
+        Location__c o = new Location__c(Id=lst.Id, Dispatch_me__c=False);
+        lstRecordsToUpdate.add(o); 
+    }
+    if(lstRecordsToUpdate.size() > 0) { 
+        update lstRecordsToUpdate; 
+    }    
+
+
+    List<Employee__c> lstRecordsToUpdate = new List<Employee__c>();
+    for (Employee__c lst : [SELECT Id 
+                     FROM Employee__c
+                     WHERE Dispatch_me__c = True]) 
+    {
+        Employee__c o = new Employee__c(Id=lst.Id, Dispatch_me__c=False);
+        lstRecordsToUpdate.add(o); 
+    }
+    if(lstRecordsToUpdate.size() > 0) { 
+        update lstRecordsToUpdate; 
+    }
+
+/* Go to Dispatch Global Custom Settings and delete all the entries:
+    DISPATCH_API_CLIENT_ID
+    DISPATCH_API_CLIENT_SECRET
+    DISPATCH_API_PASSWORD
+    DISPATCH_API_PROD_OR_SANDBOX
+*/
+
+//	Open up the Dispatch Settings tab and reset the values to point to the sandbox environment (copy other prod settings)
+//	Go to Setup, search for “Sites”, click “Sites” link and send the Site URL to a Dispatch representative
+//	Re-add dispatchme flag to locations you wish to enable (if relevant)
+//	Re-add dispatchme flag to employees you wish to enable (if relevant)
+//	Rename the Salesforce Org to have UAT in it (e.g. YourCompany UAT)
+
+
+
