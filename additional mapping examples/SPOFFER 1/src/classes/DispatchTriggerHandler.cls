@@ -1,6 +1,6 @@
 public class DispatchTriggerHandler {
 
-    public static boolean firstRun = true;
+    public static Boolean firstRun = true;
     private static Boolean runTriggers = true;
     /* Method to disable triggers by setting boolean to false */
     public static void disableTriggers() { runTriggers = false; }
@@ -22,8 +22,8 @@ public class DispatchTriggerHandler {
     }        
 
     public static void DispatchServiceProviderToDispatch(List<Account> newList,List<Account> oldList, Map<Id,Account> newMap, Map<Id,Account> oldMap){
-		if (!firstRun) { return; }
-        firstRun = false;
+        //if (!firstRun) { return; }
+        //firstRun = false;
         List<Account> newListRelevant = new List<Account>();
         Set<Id> locationIds = new Set<Id>();
         for(Account loc: newList) {
@@ -61,19 +61,19 @@ public class DispatchTriggerHandler {
                 dispSP.dispconn__Usage__c = 'normal';
                 dispSP.dispconn__SF_Org_ID__c = extSP.Contractor_Id__c; 
                 // need all 4 address components to have a valid address
-                if (String.isBlank(extSP.BillingStreet) || String.isBlank(extSP.BillingCity) || String.isBlank(extSP.BillingState) || String.isBlank(extSP.BillingPostalCode) ) {
+                if (String.isBlank(extSP.ShippingStreet) || String.isBlank(extSP.ShippingCity) || String.isBlank(extSP.ShippingState) || String.isBlank(extSP.ShippingPostalCode) ) {
                     dispSP.dispconn__Address_Street__c      = null;
                     dispSP.dispconn__Address_City__c        = null;
                     dispSP.dispconn__Address_State__c       = null;
                     dispSP.dispconn__Address_Postal_Code__c = null;
                     dispSP.dispconn__Address_Country__c    = null;
                 } else {
-                    dispSP.dispconn__Address_Street__c      = extSP.BillingStreet;
-                    dispSP.dispconn__Address_City__c        = extSP.BillingCity;
-                    dispSP.dispconn__Address_State__c       = extSP.BillingState;
-                    dispSP.dispconn__Address_Postal_Code__c = extSP.BillingPostalCode;
+                    dispSP.dispconn__Address_Street__c      = extSP.ShippingStreet;
+                    dispSP.dispconn__Address_City__c        = extSP.ShippingCity;
+                    dispSP.dispconn__Address_State__c       = extSP.ShippingState;
+                    dispSP.dispconn__Address_Postal_Code__c = extSP.ShippingPostalCode;
                     dispSP.dispconn__Address_Country__c = 'United States';
-                    if (extSP.BillingCountry == 'CA' || extSP.BillingCountry == 'Canada' ) {  
+                    if (extSP.ShippingCountry == 'CA' || extSP.ShippingCountry == 'Canada' ) {  
                         dispSP.dispconn__Address_Country__c = 'Canada';
                     }    
 
@@ -86,7 +86,7 @@ public class DispatchTriggerHandler {
             if(dispSPsUpdate.size() > 0) {
                 upsert dispSPsUpdate;
             }
-        }      	
+        }        
     }
 
 
@@ -99,15 +99,18 @@ public class DispatchTriggerHandler {
         Set<Id> contactIds = new Set<Id>();    
         Set<Id> locationIds = new Set<Id>();    
         List<Work_Order__c> newListRelevant = new List<Work_Order__c>();
+        List<dispconn.DispatchUtils.Log> logs = new List<dispconn.DispatchUtils.Log>{};
+        //DateTime dt = DateTime.newInstanceGmt(2019,6,4,12,0,0);
         for(Work_Order__c wo: newList) {
             jobIds.add(wo.Id);
-            if (wo.Claim__c != null) {
-            	caseIds.add(wo.Claim__c);
-            }
-            if (wo.Contractor__c != null) {
+            if (wo.Claim__c != null && wo.Contractor__c != null) {
+                log('info', 'job', '', wo, logs);
+                caseIds.add(wo.Claim__c);
                 locationIds.add(wo.Contractor__c);
-            }                    
-            newListRelevant.add(wo);
+                newListRelevant.add(wo);
+            } else {
+                log('info', 'job', 'missing info. claim? ' + (wo.Claim__c != null) + ' contractor? ' + (wo.Contractor__c != null), wo, logs);
+            }
         }
         
         if (newListRelevant.size() > 0 ) {
@@ -117,47 +120,49 @@ public class DispatchTriggerHandler {
                 mapDispJobs.put(j.Ext_Job__c, j);
             }
 
-            List<dispconn__Service_Provider__c> dispSPs = [SELECT Id, Ext_Service_Provider__c, Ext_Service_Provider__r.First_Hour_Labor_Rate__c
+            List<dispconn__Service_Provider__c> dispSPs = [SELECT Id, Ext_Service_Provider__c, Ext_Service_Provider__r.First_Hour_Labor_Rate__c, Ext_Service_Provider__r.Contractor_Id__c
                                                            FROM dispconn__Service_Provider__c 
-                                                           WHERE Ext_Service_Provider__c IN :locationIds];
+                                                           WHERE Ext_Service_Provider__c IN :locationIds
+                                                           AND Ext_Service_Provider__r.Dispatch_Me__c = True];
             map<string, dispconn__Service_Provider__c> mapDispSPs = new map<string, dispconn__Service_Provider__c>();
             for(dispconn__Service_Provider__c sp: dispSPs) {
                 mapDispSPs.put(sp.Ext_Service_Provider__c, sp);
             }
 
-            // FSL: Gather Contact Info for job. If the Service Appointment does not contain the address, the address from the contact record will be used
-            List<Case> cases = [SELECT Contact.FirstName, Contact.LastName, Contact.MobilePhone, Contact.Email,
-                                             Contact.MailingStreet, Contact.MailingCity, Contact.MailingPostalCode, Contact.MailingState, Contact.MailingCountry,
-                                             Subject,Description,Status,Type,Policy_Number__c,Claim_Approved_Amount__c,Contractor_Authorized_Amount__c,Customer_Authorized_Amount__c,
-                                             Invoice_Due_Date__c
-                                       FROM Case WHERE Id IN :caseIds];
+            List<Case> cases = [SELECT Policy__r.First_Name__c, Policy__r.Last_Name__c, Policy__r.Primary_Phone__c, Policy__r.Home_Phone__c, Policy__r.Email__c,
+                                       Policy__r.BillingStreet, Policy__r.BillingCity, Policy__r.BillingPostalCode, Policy__r.BillingState, Policy__r.BillingCountry,
+                                       Subject,Description,Status,Type,Policy__r.ContractNumber,Claim_Approved_Amount__c,Contractor_Authorized_Amount__c,Customer_Authorized_Amount__c,
+                                       Invoice_Due_Date__c,CaseNumber,Service_Call_Fee__c,Service_Call_Fee_Override__c,Reason,Issue_Detail__c,Contractor__r.Contractor_Id__c, Trip_Charge__c
+                                FROM Case WHERE Id IN :caseIds];
             map<Id, Case> mapCases = new map<Id, Case>(cases);
 
             // Create a list for updating
             List<dispconn__Job__c> dispJobsUpdate = new List<dispconn__Job__c>();
-
             for (Work_Order__c extJob : newListRelevant) {
                 try {
                     // Lookup corresponding Dispatch Job from map - you should not have to change this logic
-                    System.debug('Dispatch: ' + extJob.Name);
                     dispconn__Job__c dispJob;
                     dispJob = mapDispJobs.get(extJob.Id);
                     if (dispJob == Null) {
                         // job not found insert
-                        dispJob = new dispconn__Job__c();
-                        dispJob.dispconn__Status__c = 'New';
+                        if ((oldMap.get(extJob.Id).Contractor__c == null && extJob.Contractor__c != null) ||
+                            (extJob.Contractor__c != oldMap.get(extJob.Id).Contractor__c)) {
+                            dispJob = new dispconn__Job__c();
+                            dispJob.dispconn__Status__c = 'New';
+                        } else {
+                            throw new jobException('Contractor did not change so insert ignored');
+                        }
                     }
                     dispJob.Ext_Job__c = extJob.Id;
                     // Initialize - sync statuses. Recommend leaving as is.
                     dispJob.dispconn__Last_Sync_Response__c = 'Pending Sync:'+DateTime.now();
-                    dispJob.dispconn__Last_Sync_Response_Code__c = Null;
                     dispJob.dispconn__Synced__c = False;
                     
                     dispconn__Service_Provider__c sp;
                     if (extJob.Contractor__c != null) {
                         sp = mapDispSPs.get(extJob.Contractor__c);
                         if (sp == null) {  // not a valid dispatch territory
-                            throw new jobException('Dispatch: not a valid dispatch territory 2');
+                            throw new jobException('Not a valid contractor. Please ensure the Dispatch.me flag has been enabled.');
                         }                        
                         dispJob.dispconn__Service_Provider__c = sp.Id;
                     }
@@ -165,77 +170,65 @@ public class DispatchTriggerHandler {
                     /* CONTACT INFO */
                     Case cas = mapCases.get(extJob.Claim__c);
                     if (cas == null) {
-                        throw new jobException('Case not linked to the job');
+                        throw new jobException('Exception: Case not linked to the job');
                     }
-                    if (!String.isBlank(cas.Contact.FirstName)) {
-                        dispJob.dispconn__First_Name__c = cas.Contact.FirstName.left(50);
+                    if (!String.isBlank(cas.Policy__r.First_Name__c)) {
+                        dispJob.dispconn__First_Name__c = cas.Policy__r.First_Name__c.left(50);
                     }    
-                    if (!String.isBlank(cas.Contact.LastName)) {
-                        dispJob.dispconn__Last_Name__c = cas.Contact.LastName.left(50);
+                    if (!String.isBlank(cas.Policy__r.Last_Name__c)) {
+                        dispJob.dispconn__Last_Name__c = cas.Policy__r.Last_Name__c.left(50);
                     }
-                    String mobilePhone = cas.Contact.MobilePhone;
+                    String mobilePhone = !String.isBlank(cas.Policy__r.Primary_Phone__c) ? cas.Policy__r.Primary_Phone__c : cas.Policy__r.Home_Phone__c;
                     if (!String.isBlank(mobilePhone)) {
                         dispJob.dispconn__Mobile__c = mobilePhone.left(14);
                     }
-                    if (!String.isBlank(cas.Contact.Email)) {
-                        dispJob.dispconn__Email__c = cas.Contact.Email;
+                    if (!String.isBlank(cas.Policy__r.Email__c)) {
+                        dispJob.dispconn__Email__c = cas.Policy__r.Email__c;
                     }
 
-                    dispJob.dispconn__SF_Job_Id__c = extJob.Name; 
+                    dispJob.dispconn__SF_Job_Id__c = cas.CaseNumber; 
                     /* JOB ADDRESS */
                     dispJob.dispconn__Address_Country__c = 'United States';
-                    dispJob.dispconn__Address_Street__c      = cas.Contact.MailingStreet;
-                    dispJob.dispconn__Address_City__c        = cas.Contact.MailingCity;
-                    dispJob.dispconn__Address_State__c       = cas.Contact.MailingState;
-                    dispJob.dispconn__Address_Postal_Code__c = cas.Contact.MailingPostalCode;
-                    if (cas.Contact.MailingCountry == 'CA' || cas.Contact.MailingCountry == 'Canada') {
+                    dispJob.dispconn__Address_Street__c      = cas.Policy__r.BillingStreet;
+                    dispJob.dispconn__Address_City__c        = cas.Policy__r.BillingCity;
+                    dispJob.dispconn__Address_State__c       = cas.Policy__r.BillingState;
+                    dispJob.dispconn__Address_Postal_Code__c = cas.Policy__r.BillingPostalCode;
+                    if (cas.Policy__r.BillingCountry == 'CA' || cas.Policy__r.BillingCountry == 'Canada') {
                         dispJob.dispconn__Address_Country__c = 'Canada';
                     }    
 
                     /* JOB TITLE */
-                    if (!String.isBlank(cas.Subject)) {
-                        dispJob.dispconn__Title__c = cas.Subject;
-                    }  
+                    dispJob.dispconn__Title__c = 'Claim: ' + cas.CaseNumber + ' Policy: ' + cas.Policy__r.ContractNumber;
 
                     /* JOB DESCRIPTION */
-                     /* **ENTRY NOTES:**\n\n* Special Entry: ENTER THROUGH SIDE DOOR; ENTER CODE 2008 AND TURN TO THE LEFT TO ENTER; WHEN LEAVING ENTER 2008 AND TURN TO THE RIGHT TO LOCK\n* Home Entry Code: Special Entry\n* Key: 000\n* Driving Directions: T/L ONTO WEST; T/R ONTO YORK; T/L ONTO FAIRMOUNT; BECOMES GOUCHER; BEAR RIGHT ONTO LOCH RAVEN; T/R ONTO LOCH HILL\n\n**ROOM SUMMARY:**\n\n\nRoom | Level | SA | Instructions | Desc \n---- | ----- | :-: | ----- | ----\nMaster Bedroom | Upper |  |  | \n. |  |  |  | \nBedroom | Upper | Y |  | Pink Bedroom, Top of Stairs\n. |  |  |  | \nBedroom | Upper | Y |  | Daughter&#39; s Bedroom\n. |  |  |  | \nLiving Room | Main |  |  | \n. |  |  |  | \nDining Room | Main |  |  | \n. |  |  |  | \nHallway | Upper |  |  | \n. |  |  |  | \nStairs | Main | Y |  | \n. |  |  |  | \nRec Room | Lower |  |  | \n. |  |  |  | \nKitchen | Main |  |  | \n. |  |  |  | \nMaster Bathroom | Upper |  |  | \n. |  |  |  | \nHalf Bath | Lower | Y |  | \n. |  |  |  | \n\n**CUSTOMER NOTES:**\n\n* **Equipment** Mildew remover; Wall glide; High duster\n\n* **Special Descripiton** MM ADVANTAGE 24; PLEASE BE MINDFUL OF PET HAIR UNDERNEATH FURNITURE; STEAMER DOES NOT WORK WELL ON THE FLOORS IN THIS HOME- PLEASE MOP; PLEASE SPOT CHECK WINDOWS FOR NOSE PRINTS\n\n* **Special Instructions** DOG IS BEAR; TRASH GOES TO CANS OUTSIDE;\n\n\n**PRICING:**\n\n* Due: 125.00\n* Payroll: 87.50\n* A/R: 0.00\n* Paying By: Credit Card
-                     */
-
                     System.debug('Dispatch: description');
-                    String serviceCharge = (extJob.Service_Charge__c != null ? String.valueOf(extJob.Service_Charge__c) : '');
+                    String serviceCharge = (cas.Service_Call_Fee__c != null ? String.valueOf(cas.Service_Call_Fee__c) : '');
+                    String serviceChargeOverride = (cas.Service_Call_Fee_Override__c != null ? String.valueOf(cas.Service_Call_Fee_Override__c) : '');
                     String descr = '';
-                    descr += '**CLAIM APPROVAL STATUS: ';
-                    if (!String.isBlank(extJob.Auth_Approval_Status__c)) {
-                        descr += extJob.Auth_Approval_Status__c.toUpperCase() + '**';
-                    } else {
-                        descr += 'PENDING**';
-                    }
+                    Boolean completeJob = false;
+                    String approvalStatus = extJob.Auth_Approval_Status__c;
+                    if (!String.isBlank(approvalStatus)) {
+                        if (approvalStatus == 'RA Sent' || approvalStatus == 'Check Mailed') {
+                            completeJob = true;
+                        }
+                    } 
                     
-                    descr += '\n\n**DESCRIPTION:**\n';
-                    descr += cas.Description;
-                    descr += '\n\n**CLAIM DETAILS:**\n';
-                    descr += '\n* Service Charge: $' + serviceCharge;
-                    descr += '\n* Policy #: ' +(!String.isBlank(cas.Policy_Number__c) ? cas.Policy_Number__c : '');
-                    descr += '\n* Claim Approved Amount: ' +(cas.Claim_Approved_Amount__c != null ? String.valueOf(cas.Claim_Approved_Amount__c) : '');
-                    descr += '\n* Customer Authorized Amount: ' +(cas.Customer_Authorized_Amount__c != null  ? String.valueOf(cas.Customer_Authorized_Amount__c) : '');
-                    descr += '\n* Contractor Authorized Amount: ' +(cas.Contractor_Authorized_Amount__c != null  ? String.valueOf(cas.Contractor_Authorized_Amount__c) : '');
-                    descr += '\n* Invoice Due Date: ' +(cas.Invoice_Due_Date__c != null  ? String.valueOf(cas.Invoice_Due_Date__c) : '');
-
-                    descr += '\n\nACME Corp is sending you work orders via Dispatch. In order to give status to Select, and avoid a phone call, simply "Accept" this offer. You will be taken into Dispatch, a portal where you can schedule the work order, from your computer or your phone. If you need help, reach out at support@dispatch.me';
-                    descr += '\n\n**DO NOT COMPLETE ANY REPAIRS THAT TOTAL ABOVE $'+serviceCharge+' WITHOUT APPROVAL FROM ACME Corp. IF THE GROSS REPAIR ESTIMATE EXCEEDS $'+serviceCharge+': PLEASE CONTACT US TO RECEIVE AUTHORIZATION TO COMPLETE THE REPAIRS.  YOU CAN SUBMIT YOUR DIAGNOSIS FOR AUTHORIZATION BY DOING THE FOLLOWING:   1. UPLOAD YOUR DIAGNOSIS VIA THE DISPATCH.ME PORTAL. 2.CONTACT THE AUTHORIZATION DEPARTMENT AT 855-267-3532 OPTION 7.  PLEASE HAVE THE WORK ORDER NUMBER AND COMPLETE DIAGNOSIS ON HAND.**';
-                    descr += '\n\n**ALL INVOICES MUST BE UPLOADED TO THE DISPATCH.ME PORTAL OR EMAILED TO invoice@selecthomewarranty.com. WE ENCOURAGE ALL CONTRACTORS TO UPLOAD THEIR INVOICES TO THE DISPATCH PORTAL TO ENSURE THEY RECEIVE PAYMENT PROMPTLY.**';
-                    descr += '\n\n**ALL PICTURES SHOULD BE UPLOADED TO THE DISPATCH.ME PORTAL OR EMAILED TO claims@selecthomewarranty.com**';
-                    descr += '\n\n**Service Providers are responsible to collect the $'+serviceCharge+' service call fee directly from the customer. The customer is aware of this fee.**';
-                    descr += '\n\nACME Corp does not cover the aforementioned policy exceptions, and needs to be made aware of these exceptions while the technician is on site so that ACME Corp can explain the contract coverage to the customer, thereby preventing delays in service and possible miscommunications. A ACME Corp Authorization Agent may refer the customer to the onsite technician for all non-covered repairs.';
+                    descr += '* Reason: ' + (!String.isBlank(cas.Reason) ? cas.Reason : '');
+                    descr += '\n\n* Issue Detail: ' + (!String.isBlank(cas.Issue_Detail__c) ? cas.Issue_Detail__c : '');
+                    descr += '\n\n* Claim Description: ' + (!String.isBlank(cas.Description) ? cas.Description : '');
+                    descr += '\n\n* Contractor ID: ' + (!String.isBlank(sp.Ext_Service_Provider__r.Contractor_Id__c) ? sp.Ext_Service_Provider__r.Contractor_Id__c : '');
+                    descr += '\n\n* Trip Charge: ' + ((cas.Trip_Charge__c != null) ? String.valueOf(cas.Trip_Charge__c) : '0');
+                    descr += '\n\n* Not To Exceed: $' + ((extJob.Not_To_Exceed__c != null) ? extJob.Not_To_Exceed__c : '');
+                    descr += '\n\n**Under no circumstances should any payment be collected other than the consumers service call fee unless you have received explicit instructions**';
+                    descr += '\n\n**DO NOT COMPLETE ANY REPAIRS THAT TOTAL ABOVE $100 WITHOUT APPROVAL Umbrella Warranty. IF THE GROSS REPAIR ESTIMATE EXCEEDS $100: PLEASE CONTACT US TO RECEIVE AUTHORIZATION TO COMPLETE THE REPAIRS.  YOU CAN SUBMIT YOUR DIAGNOSIS FOR AUTHORIZATION BY CONTACTING THE AUTHORIZATION DEPARTMENT AT 855-267-3532 OPTION 7.  PLEASE HAVE THE WORK ORDER NUMBER AND COMPLETE DIAGNOSIS ON HAND.**';
+                    descr += '\n\n**Service Providers are responsible to collect the $'+(String.isBlank(serviceChargeOverride) ? serviceCharge : serviceChargeOverride)+' service call fee directly from the customer. The customer is aware of this fee.**';
+                    descr += '\n\n';
+                    descr += '\n\n';
                     descr += '\n\nDO NOT MAIL OR FAX INVOICES - UPLOAD TO THE PORTAL OR EMAIL';
                     descr += '\n\nTHE CLAIMS AUTHORIZATION DEPT IS AVAILABLE DURING THE FOLLOWING TIMES:';
-                    descr += '\n* MONDAY - THURSDAY 9:00 AM - 7PM';
-                    descr += '\n* FRIDAY 9:00 AM-6PM';
-                    descr += '\n* SATURDAY 11AM- 5PM';
-                    descr += '\n* CLOSED ON SUNDAYS';
-                    descr += '\n\nALL TIMES ABOVE ARE EASTERN STANDARD TIME';
+                    descr += '\n\nMONDAY - THURSDAY 9:00AM - 7PM - FRIDAY 9:00AM-6PM - SATURDAY 11AM- 5PM';
+                    descr += '\n\n(CLOSED ON SUNDAYS) ALL TIMES ABOVE ARE EASTERN STANDARD TIME';
      
-
                     dispJob.dispconn__Description__c = descr;
 
                     /* SERVICE TYPE */
@@ -244,18 +237,18 @@ public class DispatchTriggerHandler {
                     } 
 
                     /* CUSTOM FORM */
-                    try {
+                    //try {
                         /*if (!String.isBlank(dispJob.dispconn__Custom_Form_Data__c) && someCondition) {
                             CustomFormObject customForm = (CustomFormObject)JSON.deserialize(dispJob.dispconn__Custom_Form_Data__c, CustomFormObject.class);
                             map<String, String> mapFormData = getFormDataMap(customForm.form_data);
                             mapFormData.put('brand','xxx');
                             dispJob.dispconn__Custom_Form_Data__c = JSON.serialize(mapFormData);
                         } else {*/
-                            if (dispJob.dispconn__Status__c == 'New' && sp.Ext_Service_Provider__r.First_Hour_Labor_Rate__c != null) {
-                                dispJob.dispconn__Custom_Form_Data__c = '{"form_name":"autho1","form_data":[{"name":"labor_rate","value":"'+String.valueOf(sp.Ext_Service_Provider__r.First_Hour_Labor_Rate__c)+'"}]}';
-                            }
+                            //if (dispJob.dispconn__Status__c == 'New' && sp.Ext_Service_Provider__r.First_Hour_Labor_Rate__c != null) {
+                            //    dispJob.dispconn__Custom_Form_Data__c = '{"form_name":"autho1","form_data":[{"name":"labor_rate","value":"'+String.valueOf(sp.Ext_Service_Provider__r.First_Hour_Labor_Rate__c)+'"}]}';
+                            //}
                         //}
-                    } catch (Exception e) {}
+                    //} catch (Exception e) {}
 
                     /*if (extJob.SchedStartTime != null) {
                         dispJob.dispconn__Scheduled_Date__c = extJob.SchedStartTime;
@@ -263,7 +256,9 @@ public class DispatchTriggerHandler {
                     } */
 
                     // handle status changes
-                    if (oldMap == null || extJob.Status__c != oldMap.get(extJob.Id).Status__c) {
+                    if (completeJob) {
+                        dispJob.dispconn__Status__c = 'Completed';
+                    } else if (oldMap == null || extJob.Status__c != oldMap.get(extJob.Id).Status__c) {
                         if (extJob.Status__c == 'Accepted' ) {
                             dispJob.dispconn__Status__c = 'Accepted';
                         } else if (extJob.Status__c == 'Completed') { 
@@ -272,16 +267,18 @@ public class DispatchTriggerHandler {
                             dispJob.dispconn__Status__c = 'Canceled';
                         } 
                     }    
-
                     dispJobsUpdate.add(dispJob);
-
                 } catch (jobException e) {
-                    System.debug('Dispatch: updateJob exception: '+e.getMessage());
+                    System.debug('Dispatch: '+e.getMessage());
+                    log('info', 'job', e.getMessage(), extJob, logs);
                 }
             }
             if (!dispJobsUpdate.isEmpty()) {
                 upsert dispJobsUpdate;
             }
+        }
+        if (!logs.isEmpty()) {
+            dispconn.DispatchUtils.writeLog(logs);
         }
     }    
 
@@ -297,17 +294,18 @@ public class DispatchTriggerHandler {
                 extJobIds.add(j.Ext_Job__c);
             }
         } 
+        /*
         map<String,Authorization_Form__c> mapAuth = new map<String,Authorization_Form__c>();
         if (customFormData) {
             // get auth record
             for(Authorization_Form__c a: [SELECT Work_Order__c,Id,Work_Order__r.Contractor__r.First_Hour_Labor_Rate__c FROM Authorization_Form__c WHERE Work_Order__c IN :extJobIds]) { //should only be 1
                 mapAuth.put(a.Work_Order__c, a);
             }
-        }         
+        }*/         
 
         // Create a list for updating
         List<Work_Order__c> extJobsUpdate = new List<Work_Order__c>();
-        List<Authorization_Form__c> extAuthsUpdate = new List<Authorization_Form__c>();
+        //List<Authorization_Form__c> extAuthsUpdate = new List<Authorization_Form__c>();
         // Let's update the Dispatch Job records with the changes in the trigger list
         for(dispconn__Job__c dispJob: newList) {
             Work_Order__c extJob = new Work_Order__c(Id=dispJob.Ext_Job__c);
@@ -321,16 +319,8 @@ public class DispatchTriggerHandler {
                 else if (dispJob.dispconn__Status__c == 'Rejected') {
                     String reason = dispJob.dispconn__Status_Message__c;
                     if (!String.IsBlank(reason)) {
-                        reason = reason.toLowerCase();
-                        if (reason == 'no availability') {
-                            extJob.Status__c = 'Rejected: No availability'; 
-                        } else if (reason == 'wrong trade') {
-                            extJob.Status__c = 'Rejected: Wrong trade'; 
-                        } else if (reason == 'billing issue') {
-                            extJob.Status__c = 'Rejected: Billing issue'; 
-                        } else if (reason == 'incorrect service area') {
-                            extJob.Status__c = 'Rejected: Incorrect service area'; 
-                        } 
+                        extJob.Status__c = 'Rejected: '+reason;
+                        extJob.Dispatch_Status_Reason__c = reason;
                     }
                     extJob.Dispatch_Status__c = 'Rejected'; 
                 }                 
@@ -338,27 +328,37 @@ public class DispatchTriggerHandler {
                     extJob.Status__c = 'Paused'; 
                     extJob.Dispatch_Status__c = 'Paused'; 
                     extJob.Date_Paused__c = DateTime.now(); 
-                    if (!String.IsBlank(dispJob.dispconn__Status_Message__c)) {
-                        extJob.Dispatch_Status_Reason__c = dispJob.dispconn__Status_Message__c;
+                    String reason = dispJob.dispconn__Status_Message__c;
+                    if (!String.IsBlank(reason)) {
+                        reason = reason.substringBefore(':');
+                        extJob.Status__c = 'Paused: '+reason;
+                        extJob.Dispatch_Status_Reason__c = reason;
                     }
                 } 
                 else if (dispJob.dispconn__Status__c == 'Completed') { 
                     extJob.Status__c = 'Completed'; 
                     extJob.Dispatch_Status__c = 'Completed'; 
                     extJob.Date_Completed__c = dispJob.dispconn__Completed_Time__c;
-                    if (!String.IsBlank(dispJob.dispconn__Status_Message__c)) {
-                        extJob.Dispatch_Status_Reason__c = dispJob.dispconn__Status_Message__c;
+                    String reason = dispJob.dispconn__Status_Message__c;
+                    if (!String.IsBlank(reason)) {
+                        reason = reason.substringBefore(':');
+                        extJob.Status__c = 'Completed: '+reason;
+                        extJob.Dispatch_Status_Reason__c = reason;
                     }
                 }  
                 else if (dispJob.dispconn__Status__c == 'Scheduled' && extJob.Date_Scheduled__c == null) { 
                     extJob.Status__c = 'Scheduled'; 
                     extJob.Dispatch_Status__c = 'Scheduled';
-                    extJob.Date_Scheduled__c = DateTime.now();                     
+                    extJob.Date_Scheduled__c = Date.today(); //DateTime.now();
+                    extJob.Earliest_Arrival__c = dispJob.dispconn__Scheduled_Date__c;
+                    extJob.Latest_Arrival__c = DateTime.valueOf(dispJob.dispconn__Scheduled_Date__c).addHours(Integer.valueOf(dispJob.dispconn__Estimated_Duration__c));
                 }
                 else if (dispJob.dispconn__Status__c == 'Rescheduled' && extJob.Date_Rescheduled__c == null) { 
                     extJob.Status__c = 'Rescheduled'; 
                     extJob.Dispatch_Status__c = 'Rescheduled';
-                    extJob.Date_Rescheduled__c = DateTime.now();                     
+                    extJob.Date_Rescheduled__c = Date.today(); //DateTime.now();
+                    extJob.Earliest_Arrival__c = dispJob.dispconn__Scheduled_Date__c;
+                    extJob.Latest_Arrival__c = DateTime.valueOf(dispJob.dispconn__Scheduled_Date__c).addHours(Integer.valueOf(dispJob.dispconn__Estimated_Duration__c));
                 }                            
                 else if (dispJob.dispconn__Status__c == 'Enroute') { 
                     extJob.Status__c = 'Enroute'; 
@@ -379,6 +379,7 @@ public class DispatchTriggerHandler {
                 extJob.Rating__c = dispJob.dispconn__Rating__c;
                 extJob.Rating_Message__c = dispJob.dispconn__Rating_Message__c;
             }
+            /*
             if (!String.isBlank(dispJob.dispconn__Custom_Form_Data__c) && dispJob.dispconn__Custom_Form_Data__c != oldMap.get(dispJob.Id).dispconn__Custom_Form_Data__c) { 
                 try {
                     CustomFormObject customForm = (CustomFormObject)JSON.deserialize(dispJob.dispconn__Custom_Form_Data__c, CustomFormObject.class);
@@ -436,6 +437,7 @@ public class DispatchTriggerHandler {
                         extAuth.Is_the_unit_leaking_freon__c  = getTruthyValue(mapFormData.get('leaking_freon'));
                         extAuth.Is_the_Unit_leaking_water__c  = getTruthyValue(mapFormData.get('leaking_water'));
                         extAuth.What_was_the_cause_of_failure__c  = getStringValue(mapFormData.get('cause_of_failure'),255);
+                        extAuth.Authorization_Status__c = 'Submitted';
 
                         extAuthsUpdate.add(extAuth);
                     }
@@ -444,15 +446,17 @@ public class DispatchTriggerHandler {
                     system.debug('Dispatch: Error processing custom form: '+e.getMessage());
                 }
 
-            }
+            }*/
             extJobsUpdate.add(extJob);
         }
         if (!extJobsUpdate.isEmpty()) {
             upsert extJobsUpdate;
         }
+        /*
         if (!extAuthsUpdate.isEmpty()) {
             upsert extAuthsUpdate;
-        }        
+        } 
+        */       
     }
 
     public static map<String, String> getFormDataMap(List<FormDataObject> form_data) {
@@ -495,21 +499,24 @@ public class DispatchTriggerHandler {
         }
     }          
 
-    public static void AuthorizationForm(List<Authorization_Form__c> newList,List<Authorization_Form__c> oldList, Map<Id,Authorization_Form__c> newMap, Map<Id,Authorization_Form__c> oldMap){
+    /*public static void AuthorizationForm(List<Authorization_Form__c> newList,List<Authorization_Form__c> oldList, Map<Id,Authorization_Form__c> newMap, Map<Id,Authorization_Form__c> oldMap){
         if (!firstRun) { return; }
         List<Work_Order__c> extJobsUpdate = new List<Work_Order__c>();
         for(Authorization_Form__c authForm: newList) {
             if (authForm.Authorization_Status__c != oldMap.get(authForm.Id).Authorization_Status__c) {
-                Work_Order__c extJob = new Work_Order__c(Id=authForm.Work_Order__c);
-                extJob.Auth_Approval_Status__c = authForm.Authorization_Status__c;
-                extJobsUpdate.add(extJob);
+                
+                if(authForm.Work_Order__c != null){
+                  Work_Order__c extJob = new Work_Order__c(Id=authForm.Work_Order__c);
+                  extJob.Auth_Approval_Status__c = authForm.Authorization_Status__c;
+                  extJobsUpdate.add(extJob);
+                }
             }
         }
         if (!extJobsUpdate.isEmpty()) {
             update extJobsUpdate;
         }
         firstRun = false;
-    }
+    }*/
 
     public static void DispatchNoteFromToDispatch(List<Note> newList){
         if (!firstRun) { return; }
@@ -556,8 +563,10 @@ public class DispatchTriggerHandler {
                 insert extNoteList;
             }            
         }    
+    }
 
-   
-    }    
+    private static void log(String level, String entity, String message, Work_Order__c wo, List<dispconn.DispatchUtils.Log> logs) {
+        logs.add(new dispconn.DispatchUtils.Log(level,entity,'map','To Dispatch:'+wo.Id+'/'+wo.Name + ' ' + message));
+    }
 
 }
