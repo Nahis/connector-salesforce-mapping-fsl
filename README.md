@@ -38,7 +38,7 @@ At a high level there are 2 different types of methods that you'll be using to a
 
 * Assign to tech (`TECHASSIGN`) - This is the more "classic" assignment model where you give work to a specific field worker. This model is typically used by franchises or any organization where the actual person performing the work is determined by the business. Although the FSL model does not employ this, the template code shows how to get this setup and the code comments explain where this would be the case.
 
-# Create Your Own Mapping Playbook
+# Playbook: Create Your Own Mapping
 Note that besides the integration walkthrough below, we have also provided some other (sometimes simpler) mapping examples under the "additional mapping examples" folder. That can be used as a practical reference for other "what if" scenarios.
 
 The FSL-Dispatch integration shown in the videos can be applied to any Salesforce configuration. You are going to likely want to map it to some unique Salesforce configuration that you have in your organization in order to take advantage of Dispatch platform features. If you already have a dispatch function within Salesforce that you are satisfied with then you'll likely only utilize the Dispatch mobile product. However if you're working with non-dedicated TPCs then you'll likely be utilizing both the Dispatch Portal and mobile product. To make this a reality all you need to do is change the mapping from the FSL objects and fields included in the template to the objects and fields that you are using in your Salesforce instance.
@@ -117,7 +117,7 @@ Before performing the mapping, it is recommended that you create the following c
 | Name of your linked object (Service Appointment in FSL) | Ext_Job | Lookup to your corresponding object (Service Appointment in FSL) | Linkage | Yes |
 
 
- ### `DispatchJobFromDispatch`
+### `DispatchJobFromDispatch`
 **This mapping is only relevant if you wish to consume updates back in Salesforce and show them on your main objects. In general it is recommended.**
 
 This method is responsible for mapping job updates coming back in from Dispatch. Before performing the mapping, it is recommended that you create the following custom fields
@@ -144,3 +144,7 @@ Note that in the FSL example, there is no `Note` objects against `ServiceAppoint
 
 ## Dispatch Test Class
 A sample test class has been provided. You will obviously need to update this to cover your use cases.
+
+## Dispatch Retry
+It is recommended that you schedule a retry process to make the system more robust. This can be done by executing [these scripts](https://github.com/Nahis/connector-salesforce-mapping-fsl/blob/master/scripts/job_retry.cls)
+

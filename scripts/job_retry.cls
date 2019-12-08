@@ -26,6 +26,6 @@ dispconn.DispatchJob_RetrySchedule reprocess6 = new dispconn.DispatchJob_RetrySc
 System.Schedule('Dispatch Reprocess-52', '0 52 * * * ? ', reprocess6);  
 
 
-// To intitiate manual run
+// To initiate manual run for testing
 dispconn.DispatchJob_Retry jobBatch = new dispconn.DispatchJob_Retry();
 ID batchId = Database.executeBatch(jobBatch,10);
