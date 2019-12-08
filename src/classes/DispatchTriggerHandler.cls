@@ -260,6 +260,7 @@ public class DispatchTriggerHandler {
         Set<Id> contactIds = new Set<Id>();    
         Set<Id> locationIds = new Set<Id>();    
         List<ServiceAppointment> newListRelevant = new List<ServiceAppointment>();
+        List<dispconn.DispatchUtils.Log> logs = new List<dispconn.DispatchUtils.Log>{};
         for(ServiceAppointment sa: newList) {
             if ((assignmethod == 'SPOFFER' && sa.ServiceTerritoryId != null) || // if using the offer method, the Service Territory should be on the appointment
                 (assignMethod == 'TECHASSIGN' || sa.Status != 'None')) {         // if using the direct assign method then wait until scheduled in FSL
@@ -273,6 +274,8 @@ public class DispatchTriggerHandler {
                     // FSL: could also put in a check here to see if the Service Territory is DispatchMe - before adding to newListRelevant. Would need another bulkified query at the top
                 }                    
                 newListRelevant.add(sa);
+            } else {
+                log('info', 'job', 'not ready to be sent to Dispatch', wo, logs);
             }
         }
         
@@ -516,11 +519,15 @@ public class DispatchTriggerHandler {
 
                 } catch (jobException e) {
                     System.debug('Dispatch: updateJob exception: '+e.getMessage());
+                    log('info', 'job', e.getMessage(), extJob, logs);
                 }
             }
             if (!dispJobsUpdate.isEmpty()) {
                 upsert dispJobsUpdate;
             }
+            if (!logs.isEmpty()) {
+                dispconn.DispatchUtils.writeLog(logs);
+            }            
         }
     }    
 
