@@ -275,7 +275,7 @@ public class DispatchTriggerHandler {
                 }                    
                 newListRelevant.add(sa);
             } else {
-                log('info', 'job', 'not ready to be sent to Dispatch', wo, logs);
+                log('info', 'job', 'not ready to be sent to Dispatch', sa, logs);
             }
         }
         
@@ -813,8 +813,8 @@ public class DispatchTriggerHandler {
         }       
     }    
 
-    private static void log(String level, String entity, String message, Work_Order__c wo, List<dispconn.DispatchUtils.Log> logs) {
-        logs.add(new dispconn.DispatchUtils.Log(level,entity,'map','To Dispatch:'+wo.Id+'/'+wo.Name + ' ' + message));
+    private static void log(String level, String entity, String message, ServiceAppointment sa, List<dispconn.DispatchUtils.Log> logs) {
+        logs.add(new dispconn.DispatchUtils.Log(level,entity,'map','To Dispatch:'+sa.Id+'/'+sa.Name + ' ' + message));
     }    
 
 }
