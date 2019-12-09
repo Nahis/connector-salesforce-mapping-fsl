@@ -813,4 +813,8 @@ public class DispatchTriggerHandler {
         }       
     }    
 
+    private static void log(String level, String entity, String message, Work_Order__c wo, List<dispconn.DispatchUtils.Log> logs) {
+        logs.add(new dispconn.DispatchUtils.Log(level,entity,'map','To Dispatch:'+wo.Id+'/'+wo.Name + ' ' + message));
+    }    
+
 }
